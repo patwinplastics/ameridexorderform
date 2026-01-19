@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AmeriDex Order Form</title>
+<style>
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f5f7fa;
+        color: #2d3748;
+        line-height: 1.6;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+    header {
+        text-align: center;
+        background: linear-gradient(135deg, #2563eb, #1e40af);
+        color: white;
+        padding: 2rem 1rem;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+    header img { max-width: 220px; height: auto; }
+    h1, h2 { margin: 0.5em 0; }
+    section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.75rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+    }
+    label { display: block; margin: 0.75rem 0 0.35rem; font-weight: 600; font-size: 0.95rem; }
+    input, select, textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        box-sizing: border-box;
+        font-size: 1rem;
+    }
+    input:focus, select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+    button {
+        background-color: #2563eb;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color 0.2s;
+    }
+    button:hover { background-color: #1d4ed8; }
+    .error { color: #dc2626; font-size: 0.875rem; margin-top: 0.25rem; }
+    table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; }
+    th, td { padding: 0.85rem; border: 1px solid #e5e7eb; text-align: left; }
+    th { background-color: #f3f4f6; font-weight: 600; }
+    .line-item-row input, .line-item-row select { margin: 0; }
+    .preview-img { width: 48px; height: 48px; object-fit: cover; border-radius: 4px; cursor: pointer; vertical-align: middle; margin-left: 0.5rem; }
+    .modal {
+        display: none;
+        position: fixed; inset: 0;
+        background-color: rgba(0,0,0,0.65);
+        z-index: 1000;
+        justify-content: center; align-items: center;
+    }
+    .modal-content {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        max-width: 90%;
+        max-height: 90vh;
+        text-align: center;
+        position: relative;
+    }
+    .close { position: absolute; top: 10px; right: 15px; font-size: 2rem; cursor: pointer; color: #6b7280; }
+    .close:hover { color: #1f2937; }
+    .total-line { font-size: 1.35rem; font-weight: 700; color: #1e40af; margin-top: 1rem; text-align: right; }
+    .dexerdry-info { font-size: 0.9rem; color: #4b5563; margin-top: 0.35rem; }
+    @media (max-width: 768px) {
+        table, thead, tbody, th, td, tr { display: block; }
+        thead tr { position: absolute; top: -9999px; left: -9999px; }
+        tr { border: 2px solid #e5e7eb; margin-bottom: 1rem; border-radius: 8px; }
+        td { border: none; position: relative; padding-left: 50%; }
+        td:before {
+            position: absolute; left: 1rem; width: 45%; font-weight: 600;
+            white-space: nowrap;
+        }
+        td:nth-of-type(1):before { content: "Product"; }
+        td:nth-of-type(2):before { content: "Color"; }
+        td:nth-of-type(3):before { content: "Length"; }
+        td:nth-of-type(4):before { content: "Qty"; }
+        td:nth-of-type(5):before { content: "Price"; }
+        td:nth-of-type(6):before { content: "Subtotal"; }
+        td:nth-of-type(7):before { content: "Actions"; }
+    }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <img src="https://via.placeholder.com/220x80/2563eb/ffffff?text=AmeriDex+Logo" alt="AmeriDex Logo">
+        <h1>AmeriDex Order Form</h1>
+    </header>
+
+    <section id="customer">
+        <h2>Customer Information</h2>
+        <label>Name *</label><input type="text" id="cust-name" required><div class="error" id="err-name"></div>
+        <label>Company *</label><input type="text" id="cust-company" required><div class="error" id="err-company"></div>
+        <label>Address *</label><textarea id="cust-address" required rows="3"></textarea><div class="error" id="err-address"></div>
+        <label>Phone *</label><input type="tel" id="cust-phone" required><div class="error" id="err-phone"></div>
+        <label>Email *</label><input type="email" id="cust-email" required><div class="error" id="err-email"></div>
+    </section>
+
+    <section id="order">
+        <h2>Order Details</h2>
+
+        <label><input type="checkbox" id="use-calc"> Use Deck Calculator (suggests AmeriDex System Boards)</label>
+        <div id="calc-panel" style="display:none; margin-top:1rem;">
+            <label>Deck Length (ft)</label><input type="number" id="deck-len" step="0.1" min="0">
+            <label>Deck Width (ft)</label><input type="number" id="deck-wid" step="0.1" min="0">
+            <label>Board Orientation</label>
+            <select id="orientation">
+                <option value="parallel">Parallel to Length</option>
+                <option value="perpendicular" selected>Perpendicular to Length</option>
+            </select>
+            <button type="button" id="calc-btn">Calculate & Suggest</button>
+            <div id="calc-result" style="margin-top:1rem; color:#1e40af;"></div>
+        </div>
+
+        <div style="margin:1.25rem 0;">
+            <label><input type="checkbox" id="pic-frame"> Picture Framing</label>
+            <div id="pic-frame-note" style="display:none; color:#d97706; font-size:0.9rem;">→ Manually add Solid Edge Boards for framing</div>
+        </div>
+        <div>
+            <label><input type="checkbox" id="stairs"> Stairs</label>
+            <div id="stairs-note" style="display:none; color:#d97706; font-size:0.9rem;">→ Manually add Solid Edge Boards for stairs</div>
+        </div>
+
+        <div id="fastener-hint" style="margin:1.25rem 0; padding:0.75rem; background:#eff6ff; border-radius:8px;"></div>
+
+        <table id="line-items">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Color</th>
+                    <th>Length (ft)</th>
+                    <th>Qty</th>
+                    <th>Unit Price</th>
+                    <th>Subtotal</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <button type="button" id="add-row">+ Add Line Item</button>
+
+        <label style="margin-top:1.5rem;">Special Instructions / Notes for Production</label>
+        <textarea id="special-instr" rows="3"></textarea>
+
+        <label>Internal Sales Rep Notes</label>
+        <textarea id="internal-notes" rows="2"></textarea>
+    </section>
+
+    <section>
+        <h2>Shipping & Delivery</h2>
+        <label>Shipping Address (if different)</label><textarea id="ship-addr" rows="3"></textarea>
+        <label>Preferred Delivery Date</label><input type="date" id="del-date">
+    </section>
+
+    <section>
+        <h2>Attachments (plans, sketches, etc.)</h2>
+        <input type="file" id="files" multiple accept="image/*,.pdf">
+        <div class="error" id="err-files"></div>
+    </section>
+
+    <section>
+        <div id="grand-total" class="total-line">Estimated Total: $0.00</div>
+    </section>
+
+    <section style="text-align:center; margin:2rem 0;">
+        <button id="reset">Reset Form</button>
+        <button id="pdf">Export PDF</button>
+        <button id="submit">Submit Order → Email</button>
+        <div id="success-msg" style="margin-top:1rem; color:#15803d; font-weight:600; display:none;">
+            Order email prepared! Don't forget to attach files in your email client if needed.
+        </div>
+    </section>
+
+    <!-- Color Preview Modal -->
+    <div id="colorModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <img id="colorLarge" src="" alt="Color Preview" style="max-width:100%; max-height:70vh; border-radius:8px;">
+            <div id="colorName" style="margin-top:1rem; font-weight:600;"></div>
+        </div>
+    </div>
+</div>
+
+<footer style="text-align:center; padding:1.5rem; color:#6b7280; font-size:0.9rem;">
+    <a href="http://www.ameridex.com" target="_blank" style="color:#2563eb; text-decoration:none;">www.ameridex.com</a>
+</footer>
+
+<script>
+// ──────────────────────────────────────────────────────────────────────────────
+// Constants & Configuration
+// ──────────────────────────────────────────────────────────────────────────────
+
+const PRODUCTS = {
+    'system':       { name: 'AmeriDex System Boards (Grooved + Dexerdry)',   price: 8.00,  isFt: true,  hasColor: true,  bundleDexerdry: true },
+    'grooved':      { name: 'Grooved Deck Boards (no Dexerdry)',             price: 6.00,  isFt: true,  hasColor: true,  bundleDexerdry: false },
+    'solid':        { name: 'Solid Edge Deck Boards',                         price: 6.00,  isFt: true,  hasColor: true,  bundleDexerdry: false },
+    'dexerdry':     { name: 'Dexerdry Seals (standalone)',                   price: 2.00,  isFt: true,  hasColor: false },
+    'screws':       { name: 'Epoxy-Coated Screws',                           price: 37,    isFt: false, hasColor: false },
+    'plugs':        { name: 'Color-Matching Plugs',                          price: 33.79, isFt: false, hasColor: false },
+    'custom':       { name: 'Custom / Manual Item',                          price: 0,     isFt: false, hasColor: false }
+};
+
+const COLORS = ['Driftwood','Khaki','Slate','Beachwood','Chestnut','Redwood','Hazelnut'];
+const STANDARD_LENGTHS = [12, 16, 20];
+
+const BOARD_WIDTH_INCH = 5.5;
+const GAP_INCH = 0.125;
+const EFFECTIVE_FT = (BOARD_WIDTH_INCH + GAP_INCH) / 12; // ≈ 0.46875 ft
+const WASTE = 1.10; // 10%
+
+let lineItems = [];
+let deckLengthFt = 0;
+let deckWidthFt = 0;
+
+// ──────────────────────────────────────────────────────────────────────────────
+// DOM Elements
+// ──────────────────────────────────────────────────────────────────────────────
+
+const tbody = document.querySelector('#line-items tbody');
+const modal = document.getElementById('colorModal');
+const modalImg = document.getElementById('colorLarge');
+const modalName = document.getElementById('colorName');
+const closeBtn = document.querySelector('.close');
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Event Listeners – Top Level
+// ──────────────────────────────────────────────────────────────────────────────
+
+document.getElementById('use-calc').addEventListener('change', e => {
+    document.getElementById('calc-panel').style.display = e.target.checked ? 'block' : 'none';
+});
+
+['pic-frame','stairs'].forEach(id => {
+    document.getElementById(id).addEventListener('change', e => {
+        document.getElementById(id + '-note').style.display = e.target.checked ? 'block' : 'none';
+    });
+});
+
+document.getElementById('add-row').onclick = () => {
+    lineItems.push({ type:'system', color:'', length:16, qty:1, priceOverride:null, customDesc:'', customUnitPrice:0, dexOverride:null });
+    render();
+    updateTotalAndFasteners();
+};
+
+document.getElementById('calc-btn').onclick = calculateAndSuggest;
+
+closeBtn.onclick = () => modal.style.display = 'none';
+window.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
+
+document.getElementById('reset').onclick = () => {
+    if (!confirm('Clear the entire form?')) return;
+    lineItems = [];
+    render();
+    updateTotalAndFasteners();
+    ['cust-name','cust-company','cust-address','cust-phone','cust-email','ship-addr','del-date','special-instr','internal-notes'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+    document.getElementById('files').value = '';
+    document.getElementById('use-calc').checked = false;
+    document.getElementById('calc-panel').style.display = 'none';
+    document.getElementById('pic-frame').checked = false;
+    document.getElementById('stairs').checked = false;
+    document.getElementById('pic-frame-note').style.display = 'none';
+    document.getElementById('stairs-note').style.display = 'none';
+};
+
+document.getElementById('pdf').onclick = generatePDF;
+document.getElementById('submit').onclick = submitOrder;
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Core Functions
+// ──────────────────────────────────────────────────────────────────────────────
+
+function render() {
+    tbody.innerHTML = '';
+    lineItems.forEach((item, i) => {
+        const prod = PRODUCTS[item.type] || PRODUCTS.custom;
+        const row = document.createElement('tr');
+
+        // Product
+        let td = document.createElement('td');
+        const sel = document.createElement('select');
+        Object.keys(PRODUCTS).forEach(k => {
+            const opt = document.createElement('option');
+            opt.value = k;
+            opt.textContent = PRODUCTS[k].name;
+            if (k === item.type) opt.selected = true;
+            sel.appendChild(opt);
+        });
+        sel.onchange = () => {
+            item.type = sel.value;
+            if (item.type !== 'custom') {
+                item.customDesc = '';
+                item.customUnitPrice = 0;
+            }
+            if (!PRODUCTS[item.type].isFt) item.length = null;
+            render();
+            updateTotalAndFasteners();
+        };
+        td.appendChild(sel);
+        row.appendChild(td);
+
+        // Color
+        td = document.createElement('td');
+        if (prod.hasColor) {
+            const csel = document.createElement('select');
+            COLORS.forEach(c => {
+                const o = document.createElement('option');
+                o.value = c;
+                o.textContent = c;
+                if (c === item.color) o.selected = true;
+                csel.appendChild(o);
+            });
+            csel.onchange = e => { item.color = e.target.value; updateTotalAndFasteners(); };
+            td.appendChild(csel);
+
+            const prev = document.createElement('img');
+            prev.src = `colors/${item.color.toLowerCase()}.jpg`; // ← change path when you have real images
+            prev.className = 'preview-img';
+            prev.alt = 'preview';
+            prev.title = 'Click to enlarge';
+            prev.onerror = () => { prev.src = 'https://via.placeholder.com/48?text=?'; };
+            prev.onclick = () => {
+                modalImg.src = prev.src;
+                modalName.textContent = item.color;
+                modal.style.display = 'flex';
+            };
+            td.appendChild(prev);
+        }
+        row.appendChild(td);
+
+        // Length
+        td = document.createElement('td');
+        if (prod.isFt) {
+            if (['system','grooved','solid'].includes(item.type)) {
+                const lsel = document.createElement('select');
+                STANDARD_LENGTHS.forEach(l => {
+                    const o = document.createElement('option');
+                    o.value = l;
+                    o.text = l + ' ft';
+                    if (l === item.length) o.selected = true;
+                    lsel.appendChild(o);
+                });
+                const custOpt = document.createElement('option');
+                custOpt.value = 'custom'; custOpt.text = 'Custom';
+                if (!STANDARD_LENGTHS.includes(item.length)) custOpt.selected = true;
+                lsel.appendChild(custOpt);
+
+                lsel.onchange = e => {
+                    if (e.target.value === 'custom') {
+                        const val = prompt('Custom length (ft):', item.length || '');
+                        item.length = parseFloat(val) || 16;
+                    } else {
+                        item.length = parseFloat(e.target.value);
+                    }
+                    render(); // refresh to show new value
+                    updateTotalAndFasteners();
+                };
+                td.appendChild(lsel);
+            } else {
+                // dexerdry standalone
+                const inp = document.createElement('input');
+                inp.type = 'number'; inp.step = '0.1'; inp.min = '0';
+                inp.value = item.length || '';
+                inp.oninput = e => { item.length = parseFloat(e.target.value) || 0; updateTotalAndFasteners(); };
+                td.appendChild(inp);
+            }
+        }
+        row.appendChild(td);
+
+        // Quantity
+        td = document.createElement('td');
+        const q = document.createElement('input');
+        q.type = 'number'; q.min = '1'; q.step = '1';
+        q.value = item.qty;
+        q.oninput = e => { item.qty = Math.max(1, parseInt(e.target.value)||1); updateTotalAndFasteners(); };
+        td.appendChild(q);
+
+        if (item.type === 'custom') {
+            const d = document.createElement('input');
+            d.type = 'text'; d.placeholder = 'Description'; d.value = item.customDesc||'';
+            d.oninput = e => item.customDesc = e.target.value;
+            td.appendChild(d);
+
+            const up = document.createElement('input');
+            up.type = 'number'; up.step = '0.01'; up.placeholder = 'Unit $';
+            up.value = item.customUnitPrice||'';
+            up.oninput = e => { item.customUnitPrice = parseFloat(e.target.value)||0; updateTotalAndFasteners(); };
+            td.appendChild(up);
+        }
+        row.appendChild(td);
+
+        // Price / Override
+        td = document.createElement('td');
+        if (prod.isFt || item.type === 'custom') {
+            const p = document.createElement('input');
+            p.type = 'number'; p.step = '0.01'; p.min = '0';
+            const defPrice = item.type === 'custom' ? item.customUnitPrice : prod.price;
+            p.placeholder = `default $${defPrice.toFixed(2)}`;
+            p.value = item.priceOverride ?? '';
+            p.oninput = e => { item.priceOverride = parseFloat(e.target.value); updateTotalAndFasteners(); };
+            td.appendChild(p);
+        } else {
+            td.textContent = '$' + prod.price.toFixed(2);
+        }
+        row.appendChild(td);
+
+        // Subtotal
+        td = document.createElement('td');
+        td.id = `sub-${i}`;
+        row.appendChild(td);
+
+        // Remove
+        td = document.createElement('td');
+        const rm = document.createElement('button');
+        rm.textContent = '×'; rm.style.background='#ef4444'; rm.style.padding='0.4rem 0.8rem';
+        rm.onclick = () => { lineItems.splice(i,1); render(); updateTotalAndFasteners(); };
+        td.appendChild(rm);
+        row.appendChild(td);
+
+        tbody.appendChild(row);
+    });
+}
+
+function getItemPrice(item) {
+    const prod = PRODUCTS[item.type] || PRODUCTS.custom;
+    if (item.priceOverride != null) return item.priceOverride;
+    if (item.type === 'custom') return item.customUnitPrice || 0;
+    return prod.price;
+}
+
+function getItemSubtotal(item) {
+    const prod = PRODUCTS[item.type] || PRODUCTS.custom;
+    const price = getItemPrice(item);
+    if (prod.isFt || (item.type==='custom' && item.length)) {
+        return item.qty * (item.length||0) * price;
+    }
+    return item.qty * price;
+}
+
+function updateTotalAndFasteners() {
+    let total = 0;
+    let totalGroovedBoards = 0;
+
+    lineItems.forEach((item,i) => {
+        const sub = getItemSubtotal(item);
+        total += sub;
+        document.getElementById(`sub-${i}`).textContent = '$' + sub.toFixed(2);
+
+        // Count grooved boards for fasteners (system & standalone grooved)
+        if (['system','grooved'].includes(item.type)) {
+            totalGroovedBoards += item.qty;
+        }
+    });
+
+    document.getElementById('grand-total').textContent =
+        `Estimated Total: $${total.toFixed(2)}`;
+
+    // Fastener hint
+    if (totalGroovedBoards > 0 && deckLengthFt > 0) {
+        const joistCount = Math.floor(deckLengthFt * 12 / 16) + 1;
+        const intersections = totalGroovedBoards * joistCount;
+        const screwsNeeded = intersections * 2;
+        const boxesScrews = Math.ceil(screwsNeeded / 375);
+        const boxesPlugs = boxesScrews; // same qty
+
+        document.getElementById('fastener-hint').innerHTML =
+            `<strong>Fastener Suggestion (info only – add manually):</strong><br>` +
+            `≈ ${boxesScrews} boxes of screws<br>` +
+            `≈ ${boxesPlugs} boxes of plugs`;
+    } else {
+        document.getElementById('fastener-hint').innerHTML = '';
+    }
+}
+
+function calculateAndSuggest() {
+    deckLengthFt = parseFloat(document.getElementById('deck-len').value) || 0;
+    deckWidthFt = parseFloat(document.getElementById('deck-wid').value) || 0;
+
+    if (deckLengthFt <= 0 || deckWidthFt <= 0) {
+        alert('Please enter both deck length and width > 0');
+        return;
+    }
+
+    const perp = document.getElementById('orientation').value === 'perpendicular';
+    const span = perp ? deckLengthFt : deckWidthFt;
+    const run  = perp ? deckWidthFt  : deckLengthFt;
+
+    const boardsNeeded = Math.ceil((span / EFFECTIVE_FT) * WASTE);
+    const dexerdryFt = (boardsNeeded - 1) * run * WASTE;
+
+    const msg = `
+        <strong>Suggested AmeriDex System Boards:</strong><br>
+        • ${boardsNeeded} boards @ ${run.toFixed(1)} ft each<br>
+        • Total board ft: ${(boardsNeeded * run).toFixed(1)}<br>
+        • Dexerdry needed: ${dexerdryFt.toFixed(1)} ft<br><br>
+        (10% waste included)
+    `;
+
+    document.getElementById('calc-result').innerHTML = msg;
+
+    if (confirm('Add suggested AmeriDex System Boards to the order?')) {
+        lineItems.push({
+            type: 'system',
+            color: 'Driftwood', // default – change as desired
+            length: Math.min(20, Math.round(run)), // prefer standard if close
+            qty: boardsNeeded,
+            priceOverride: null,
+            dexOverride: null
+        });
+        render();
+        updateTotalAndFasteners();
+    }
+}
+
+function validateRequired() {
+    let ok = true;
+    const fields = [
+        {id:'cust-name',    msg:'Name is required'},
+        {id:'cust-company', msg:'Company is required'},
+        {id:'cust-address', msg:'Address is required'},
+        {id:'cust-phone',   msg:'Phone is required'},
+        {id:'cust-email',   msg:'Valid email is required'}
+    ];
+
+    fields.forEach(f => {
+        const el = document.getElementById(f.id);
+        const err = document.getElementById('err-' + f.id.replace('cust-',''));
+        if (!el.value.trim()) {
+            err.textContent = f.msg;
+            ok = false;
+        } else if (f.id === 'cust-email' && !/\S+@\S+\.\S+/.test(el.value)) {
+            err.textContent = 'Please enter a valid email';
+            ok = false;
+        } else {
+            err.textContent = '';
+        }
+    });
+
+    // File size check (≤10MB total)
+    let totalBytes = 0;
+    const files = document.getElementById('files').files;
+    for (let file of files) totalBytes += file.size;
+    document.getElementById('err-files').textContent =
+        totalBytes > 10*1024*1024 ? 'Total attachments > 10 MB' : '';
+    if (totalBytes > 10*1024*1024) ok = false;
+
+    // Basic line item sanity
+    for (let item of lineItems) {
+        if (item.qty < 1) {
+            alert('All quantities must be at least 1');
+            return false;
+        }
+    }
+
+    return ok;
+}
+
+function generateOrderText() {
+    let txt = `AmeriDex Order\n\nCUSTOMER:\n`;
+    txt += `Name:     ${document.getElementById('cust-name').value}\n`;
+    txt += `Company:  ${document.getElementById('cust-company').value}\n`;
+    txt += `Address:  ${document.getElementById('cust-address').value.replace(/\n/g,' | ')}\n`;
+    txt += `Phone:    ${document.getElementById('cust-phone').value}\n`;
+    txt += `Email:    ${document.getElementById('cust-email').value}\n\n`;
+
+    txt += `ORDER LINES:\n`;
+    lineItems.forEach(item => {
+        const prod = PRODUCTS[item.type]?.name || 'Custom';
+        const color = item.color ? ` (${item.color})` : '';
+        const len = item.length ? ` × ${item.length.toFixed(1)} ft` : '';
+        const price = getItemPrice(item);
+        const sub = getItemSubtotal(item);
+        txt += `• ${prod}${color}${len}  Qty: ${item.qty}   $${price.toFixed(2)}/unit   Subtotal: $${sub.toFixed(2)}\n`;
+    });
+
+    const grand = lineItems.reduce((s,i)=>s+getItemSubtotal(i),0);
+    txt += `\nESTIMATED TOTAL: $${grand.toFixed(2)}\n\n`;
+
+    txt += `SHIPPING:\n${document.getElementById('ship-addr').value.replace(/\n/g,' | ') || '(same as customer)'}\n`;
+    txt += `Preferred Date: ${document.getElementById('del-date').value || '—'}\n\n`;
+
+    const instr = document.getElementById('special-instr').value.trim();
+    if (instr) txt += `SPECIAL INSTRUCTIONS:\n${instr}\n\n`;
+
+    const notes = document.getElementById('internal-notes').value.trim();
+    if (notes) txt += `INTERNAL NOTES:\n${notes}\n`;
+
+    return txt;
+}
+
+function submitOrder() {
+    if (!validateRequired()) return;
+
+    const body = generateOrderText();
+    const name = document.getElementById('cust-name').value.trim() || 'Customer';
+    const subject = `New AmeriDex Order – ${name}`;
+
+    location.href = `mailto:sales@ameridex.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    document.getElementById('success-msg').style.display = 'block';
+    setTimeout(() => document.getElementById('success-msg').style.display = 'none', 12000);
+}
+
+function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    let y = 20;
+
+    doc.setFontSize(20);
+    doc.text('AmeriDex Order Estimate', 105, y, {align:'center'}); y += 12;
+
+    doc.setFontSize(12);
+    doc.text('Customer:', 15, y); y += 7;
+    doc.setFontSize(10);
+    doc.text(document.getElementById('cust-name').value,    20, y); y += 6;
+    doc.text(document.getElementById('cust-company').value, 20, y); y += 6;
+    let addr = document.getElementById('cust-address').value.split('\n');
+    addr.forEach(line => { doc.text(line, 20, y); y += 6; });
+    y += 3;
+    doc.text(`Phone: ${document.getElementById('cust-phone').value}`, 20, y); y += 6;
+    doc.text(`Email: ${document.getElementById('cust-email').value}`, 20, y); y += 12;
+
+    doc.setFontSize(12);
+    doc.text('Order Lines:', 15, y); y += 8;
+
+    doc.setFontSize(10);
+    lineItems.forEach(item => {
+        const prod = PRODUCTS[item.type]?.name || item.customDesc || 'Custom';
+        const color = item.color ? ` (${item.color})` : '';
+        const len = item.length ? ` × ${item.length} ft` : '';
+        const price = getItemPrice(item);
+        const sub = getItemSubtotal(item);
+        const line = `${prod}${color}${len} × ${item.qty}   $${price.toFixed(2)}   $${sub.toFixed(2)}`;
+        doc.text(line, 20, y);
+        y += 7;
+        if (y > 270) { doc.addPage(); y = 20; }
+    });
+
+    const total = lineItems.reduce((s,i)=>s+getItemSubtotal(i),0);
+    y += 5;
+    doc.setFontSize(12);
+    doc.text(`Estimated Total: $${total.toFixed(2)}`, 20, y);
+
+    y += 15;
+    if (document.getElementById('special-instr').value.trim()) {
+        doc.text('Special Instructions:', 15, y); y += 7;
+        doc.setFontSize(10);
+        let instrLines = document.getElementById('special-instr').value.split('\n');
+        instrLines.forEach(l => { doc.text(l, 20, y); y += 6; if (y>270){doc.addPage(); y=20;} });
+    }
+
+    doc.save(`AmeriDex_Order_${new Date().toISOString().slice(0,10)}.pdf`);
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Init
+// ──────────────────────────────────────────────────────────────────────────────
+
+render();
+updateTotalAndFasteners();
+</script>
+</body>
+</html>
