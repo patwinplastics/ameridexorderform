@@ -1,518 +1,738 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AmeriDex Order Form</title>
-    <style>
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --error: #dc2626;
-            --warning: #d97706;
-            --light: #f3f4f6;
-            --gray: #6b7280;
-            --dark: #1f2937;
-        }
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #f8fafc;
-            color: var(--dark);
-            margin: 0;
-            line-height: 1.55;
-        }
-        .container { max-width: 1180px; margin: 0 auto; padding: 1.5rem; }
-        header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            text-align: center;
-            padding: 2rem 1rem;
-            border-radius: 0 0 16px 16px;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.12);
-        }
-        section {
-            background: white;
-            border-radius: 12px;
-            padding: 1.75rem;
-            margin-bottom: 1.75rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-        }
-        h2 { margin-top: 0; color: var(--primary-dark); }
-        label { font-weight: 600; margin: 1rem 0 0.4rem; font-size: 0.96rem; }
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            margin: 0.9rem 0;
-            font-weight: 500;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.75rem 0.9rem;
-            border: 1.5px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.15s;
-            box-sizing: border-box;
-        }
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3.5px rgba(37,99,235,0.18);
-        }
-        input:invalid:not(:placeholder-shown), .invalid {
-            border-color: var(--error);
-            background-color: #fef2f2;
-        }
-        .error-text {
-            color: var(--error);
-            font-size: 0.84rem;
-            margin-top: 0.35rem;
-            min-height: 1.2em;
-        }
-        .address-grid {
-            display: grid;
-            grid-template-columns: 3fr 2fr 1fr 1fr;
-            gap: 1rem;
-        }
-        .autocomplete-wrapper {
-            position: relative;
-        }
-        .autocomplete-items {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #d1d5db;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            max-height: 240px;
-            overflow-y: auto;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            z-index: 1000;
-        }
-        .autocomplete-item {
-            padding: 0.8rem 1rem;
-            cursor: pointer;
-        }
-        .autocomplete-item:hover {
-            background: #eff6ff;
-        }
-        @media (max-width: 900px) { .address-grid { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 600px) { .address-grid { grid-template-columns: 1fr; } }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1.25rem 0;
-        }
-        th, td {
-            padding: 0.9rem 0.8rem;
-            border: 1px solid #e2e8f0;
-            text-align: left;
-        }
-        th {
-            background: var(--light);
-            font-weight: 600;
-            color: var(--dark);
-        }
-        .preview-img {
-            width: 52px;
-            height: 52px;
-            object-fit: cover;
-            border-radius: 6px;
-            cursor: pointer;
-            vertical-align: middle;
-            margin-left: 0.6rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            backdrop-filter: blur(4px);
-        }
-        .modal-content {
-            background: white;
-            padding: 1.8rem;
-            border-radius: 12px;
-            max-width: 92%;
-            max-height: 88vh;
-            position: relative;
-            text-align: center;
-        }
-        .close-modal {
-            position: absolute;
-            top: 12px;
-            right: 18px;
-            font-size: 2.4rem;
-            color: #64748b;
-            cursor: pointer;
-        }
-        button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.8rem 1.6rem;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        button:hover { background: var(--primary-dark); }
-        button.danger {
-            background: #ef4444;
-            padding: 0.5rem 1rem;
-            font-size: 0.92rem;
-        }
-        .total-display {
-            font-size: 1.48rem;
-            font-weight: 700;
-            color: var(--primary-dark);
-            text-align: right;
-            margin: 1.2rem 0;
-            padding: 1rem;
-            background: #eff6ff;
-            border-radius: 10px;
-        }
-        .dexerdry-info {
-            font-size: 0.88rem;
-            color: #475569;
-            margin-top: 0.4rem;
-        }
-        .custom-fields {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.8rem;
-            margin-top: 0.6rem;
-        }
-        @media (max-width: 820px) {
-            .custom-fields { grid-template-columns: 1fr; }
-            table thead { display: none; }
-            tr {
-                display: block;
-                margin-bottom: 1.4rem;
-                border: 2px solid #e2e8f0;
-                border-radius: 10px;
-                background: #fafafa;
-            }
-            td {
-                display: block;
-                border: none;
-                position: relative;
-                padding: 0.8rem 1rem 0.8rem 48%;
-            }
-            td:before {
-                content: attr(data-label);
-                position: absolute;
-                left: 1rem;
-                width: 42%;
-                font-weight: 600;
-                color: #475569;
-            }
-        }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AmeriDex Order Form</title>
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --error: #dc2626;
+      --warning: #d97706;
+      --light: #f3f4f6;
+      --gray: #6b7280;
+      --dark: #1f2937;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f8fafc;
+      color: var(--dark);
+      margin: 0;
+      line-height: 1.55;
+    }
+    .container { max-width: 1180px; margin: 0 auto; padding: 1.5rem; }
+    header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      text-align: center;
+      padding: 2rem 1rem;
+      border-radius: 0 0 16px 16px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+    }
+    section {
+      background: white;
+      border-radius: 12px;
+      padding: 1.75rem;
+      margin-bottom: 1.75rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+    h2 { margin-top: 0; color: var(--primary-dark); }
+
+    label {
+      font-weight: 600;
+      margin: 1rem 0 0.4rem;
+      font-size: 0.96rem;
+      display: block;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin: 0.9rem 0;
+      font-weight: 500;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 0.75rem 0.9rem;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.15s;
+      box-sizing: border-box;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3.5px rgba(37,99,235,0.18);
+    }
+
+    /* IMPORTANT: avoid styling :invalid on load (rep-friendly). We style only when .invalid is applied. */
+    input.invalid, select.invalid, textarea.invalid {
+      border-color: var(--error);
+      background-color: #fef2f2;
+    }
+
+    .error-text {
+      color: var(--error);
+      font-size: 0.84rem;
+      margin-top: 0.35rem;
+      min-height: 1.2em;
+    }
+
+    .address-grid {
+      display: grid;
+      grid-template-columns: 3fr 2fr 1fr 1fr;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .autocomplete-wrapper { position: relative; }
+
+    .autocomplete-items {
+      position: absolute;
+      top: calc(100% + 2px);
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      max-height: 240px;
+      overflow-y: auto;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: none;
+    }
+    .autocomplete-item {
+      padding: 0.8rem 1rem;
+      cursor: pointer;
+      border-bottom: 1px solid #eef2f7;
+    }
+    .autocomplete-item:last-child { border-bottom: none; }
+    .autocomplete-item:hover { background: #eff6ff; }
+
+    @media (max-width: 900px) { .address-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .address-grid { grid-template-columns: 1fr; } }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.25rem 0;
+    }
+    th, td {
+      padding: 0.9rem 0.8rem;
+      border: 1px solid #e2e8f0;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: var(--light);
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    .preview-img {
+      width: 52px;
+      height: 52px;
+      object-fit: cover;
+      border-radius: 6px;
+      cursor: pointer;
+      vertical-align: middle;
+      margin-left: 0.6rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+    }
+    .modal-content {
+      background: white;
+      padding: 1.8rem;
+      border-radius: 12px;
+      max-width: 92%;
+      max-height: 88vh;
+      position: relative;
+      text-align: center;
+    }
+    .close-modal {
+      position: absolute;
+      top: 12px;
+      right: 18px;
+      font-size: 2.4rem;
+      color: #64748b;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.6rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button:hover { background: var(--primary-dark); }
+    button.danger {
+      background: #ef4444;
+      padding: 0.5rem 1rem;
+      font-size: 0.92rem;
+    }
+    button.secondary {
+      background: #0f172a;
+    }
+    button.secondary:hover {
+      background: #111827;
+    }
+
+    .total-display {
+      font-size: 1.48rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      text-align: right;
+      margin: 1.2rem 0;
+      padding: 1rem;
+      background: #eff6ff;
+      border-radius: 10px;
+    }
+
+    .dexerdry-info {
+      font-size: 0.88rem;
+      color: #475569;
+      margin-top: 0.4rem;
+    }
+
+    .help-text {
+      font-size: 0.88rem;
+      color: #475569;
+      margin-top: 0.6rem;
+      line-height: 1.35;
+    }
+
+    .custom-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem;
+      margin-top: 0.6rem;
+    }
+
+    .inline-row {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 820px) {
+      .custom-fields { grid-template-columns: 1fr; }
+      table thead { display: none; }
+      tr {
+        display: block;
+        margin-bottom: 1.4rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        background: #fafafa;
+      }
+      td {
+        display: block;
+        border: none;
+        position: relative;
+        padding: 0.8rem 1rem 0.8rem 48%;
+      }
+      td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 1rem;
+        width: 42%;
+        font-weight: 600;
+        color: #475569;
+      }
+      .preview-img { margin-left: 0; margin-top: 0.5rem; display: inline-block; }
+    }
+  </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
+
 <body>
-<div class="container">
+  <div class="container">
     <header>
-        <h1>AmeriDex Order Form</h1>
-        <p style="margin:0.6rem 0 0; opacity:0.9;">Sales Rep Tool — Final Version</p>
+      <h1>AmeriDex Order Form</h1>
+      <p style="margin:0.6rem 0 0; opacity:0.9;">Sales Rep Tool — Final Version</p>
     </header>
+
     <section>
-        <h2>Customer Information</h2>
-        <label>Name *</label>
-        <input type="text" id="cust-name" required>
-        <div class="error-text" id="err-name"></div>
-        <label>Company</label>
-        <input type="text" id="cust-company">
-        <label>Address *</label>
+      <h2>Customer Information</h2>
+
+      <label for="cust-name">Name *</label>
+      <input type="text" id="cust-name" autocomplete="name" />
+      <div class="error-text" id="err-name"></div>
+
+      <label for="cust-company">Company</label>
+      <input type="text" id="cust-company" autocomplete="organization" />
+
+      <label>Address *</label>
+      <div class="address-grid">
+        <div class="autocomplete-wrapper">
+          <input type="text" id="cust-street" placeholder="Start typing street address..." autocomplete="off" />
+          <div class="autocomplete-items" id="cust-street-suggestions"></div>
+          <div class="error-text" id="err-street"></div>
+        </div>
+
+        <div>
+          <input type="text" id="cust-city" placeholder="City" autocomplete="address-level2" />
+          <div class="error-text" id="err-city"></div>
+        </div>
+
+        <div>
+          <input type="text" id="cust-state" placeholder="State" maxlength="2" autocomplete="address-level1" />
+          <div class="error-text" id="err-state"></div>
+        </div>
+
+        <div>
+          <input type="text" id="cust-zip" placeholder="ZIP" autocomplete="postal-code" />
+          <div class="error-text" id="err-zip"></div>
+        </div>
+      </div>
+
+      <label for="cust-phone">Phone</label>
+      <input type="tel" id="cust-phone" autocomplete="tel" />
+
+      <label for="cust-email">Email</label>
+      <input type="email" id="cust-email" autocomplete="email" />
+      <div class="error-text" id="err-email"></div>
+    </section>
+
+    <section>
+      <h2>Shipping Information</h2>
+
+      <label class="checkbox-label">
+        <input type="checkbox" id="same-as-customer" checked />
+        Same as customer address
+      </label>
+
+      <div id="shipping-fields" style="display:none;">
         <div class="address-grid">
-            <div class="autocomplete-wrapper">
-                <input type="text" id="cust-street" placeholder="Start typing street address..." required autocomplete="off">
-                <div class="error-text" id="err-street"></div>
-            </div>
-            <div>
-                <input type="text" id="cust-city" placeholder="City" required>
-            </div>
-            <div>
-                <input type="text" id="cust-state" placeholder="State" maxlength="2" required>
-            </div>
-            <div>
-                <input type="text" id="cust-zip" placeholder="ZIP" required pattern="\d{5}(-\d{4})?">
-            </div>
+          <div>
+            <input type="text" id="ship-street" placeholder="Street" autocomplete="shipping street-address" />
+            <div class="error-text" id="err-ship-street"></div>
+          </div>
+          <div>
+            <input type="text" id="ship-city" placeholder="City" autocomplete="shipping address-level2" />
+            <div class="error-text" id="err-ship-city"></div>
+          </div>
+          <div>
+            <input type="text" id="ship-state" placeholder="State" maxlength="2" autocomplete="shipping address-level1" />
+            <div class="error-text" id="err-ship-state"></div>
+          </div>
+          <div>
+            <input type="text" id="ship-zip" placeholder="ZIP" autocomplete="shipping postal-code" />
+            <div class="error-text" id="err-ship-zip"></div>
+          </div>
         </div>
-        <label>Phone</label>
-        <input type="tel" id="cust-phone">
-        <label>Email</label>
-        <input type="email" id="cust-email">
+      </div>
+
+      <label for="pref-delivery">Preferred Delivery Date</label>
+      <input type="date" id="pref-delivery" />
     </section>
+
     <section>
-        <h2>Shipping Information</h2>
-        <label class="checkbox-label">
-            <input type="checkbox" id="same-as-customer" checked> Same as customer address
-        </label>
-        <div id="shipping-fields" style="display:none;">
-            <div class="address-grid">
-                <div><input type="text" id="ship-street"></div>
-                <div><input type="text" id="ship-city"></div>
-                <div><input type="text" id="ship-state" maxlength="2"></div>
-                <div><input type="text" id="ship-zip"></div>
-            </div>
-        </div>
-        <label>Preferred Delivery Date</label>
-        <input type="date" id="pref-delivery">
+      <h2>Order Configuration</h2>
+
+      <label class="checkbox-label">
+        <input type="checkbox" id="use-calculator" />
+        Use Deck Calculator (recommends System Boards)
+      </label>
+
+      <div id="calculator-panel" style="display:none; margin-top:1.4rem;">
+        <label for="deck-length">Deck Length (ft)</label>
+        <input type="number" id="deck-length" step="0.1" min="1" placeholder="e.g. 24" />
+
+        <label for="deck-width">Deck Width (ft)</label>
+        <input type="number" id="deck-width" step="0.1" min="1" placeholder="e.g. 16" />
+
+        <label for="board-orientation">Board Orientation</label>
+        <select id="board-orientation">
+          <option value="perpendicular">Perpendicular to length (recommended)</option>
+          <option value="parallel">Parallel to length</option>
+        </select>
+
+        <button type="button" id="calculate-suggest" style="margin-top:1.1rem;">Calculate &amp; Suggest</button>
+        <div id="calc-feedback" style="margin-top:1.2rem; padding:0.9rem; background:#e0f2fe; border-radius:8px; min-height:3.2rem;"></div>
+      </div>
+
+      <label class="checkbox-label">
+        <input type="checkbox" id="picture-framing" />
+        Picture Framing
+      </label>
+      <div class="dexerdry-info" id="framing-note" style="display:none; color:var(--warning);">
+        → Please add Solid Edge Boards manually for framing
+      </div>
+
+      <label class="checkbox-label">
+        <input type="checkbox" id="stairs-needed" />
+        Stairs
+      </label>
+      <div class="dexerdry-info" id="stairs-note" style="display:none; color:var(--warning);">
+        → Please add Solid Edge Boards manually for stairs
+      </div>
     </section>
+
     <section>
-        <h2>Order Configuration</h2>
-        <label class="checkbox-label">
-            <input type="checkbox" id="use-calculator"> Use Deck Calculator (recommends System Boards)
-        </label>
-        <div id="calculator-panel" style="display:none; margin-top:1.4rem;">
-            <label>Deck Length (ft)</label>
-            <input type="number" id="deck-length" step="0.1" min="1" placeholder="e.g. 24">
-            <label>Deck Width (ft)</label>
-            <input type="number" id="deck-width" step="0.1" min="1" placeholder="e.g. 16">
-            <label>Board Orientation</label>
-            <select id="board-orientation">
-                <option value="perpendicular">Perpendicular to length (recommended)</option>
-                <option value="parallel">Parallel to length</option>
-            </select>
-            <button type="button" id="calculate-suggest" style="margin-top:1.1rem;">Calculate & Suggest</button>
-            <div id="calc-feedback" style="margin-top:1.2rem; padding:0.9rem; background:#e0f2fe; border-radius:8px; min-height:3.2rem;"></div>
-        </div>
-        <label class="checkbox-label">
-            <input type="checkbox" id="picture-framing"> Picture Framing
-        </label>
-        <div class="dexerdry-info" id="framing-note" style="display:none; color:var(--warning);">
-            → Please add Solid Edge Boards manually for framing
-        </div>
-        <label class="checkbox-label">
-            <input type="checkbox" id="stairs-needed"> Stairs
-        </label>
-        <div class="dexerdry-info" id="stairs-note" style="display:none; color:var(--warning);">
-            → Please add Solid Edge Boards manually for stairs
-        </div>
+      <h2>Line Items</h2>
+
+      <div id="fastener-suggestion" class="dexerdry-info" style="margin-bottom:1.2rem;"></div>
+
+      <table id="order-lines">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Color</th>
+            <th>Length ft</th>
+            <th>Qty</th>
+            <th>Dexerdry ft</th>
+            <th>Unit Price</th>
+            <th>Subtotal</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <button type="button" id="add-line" style="margin-top:1rem;">+ Add Line Item</button>
+
+      <div class="error-text" id="err-lines" style="margin-top:0.8rem;"></div>
     </section>
+
     <section>
-        <h2>Line Items</h2>
-        <div id="fastener-suggestion" class="dexerdry-info" style="margin-bottom:1.2rem;"></div>
-        <table id="order-lines">
-            <thead>
-                <tr>
-                    <th>Product</th>
-                    <th>Color</th>
-                    <th>Length ft</th>
-                    <th>Qty</th>
-                    <th>Dexerdry ft</th>
-                    <th>Unit Price</th>
-                    <th>Subtotal</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-        <button type="button" id="add-line" style="margin-top:1rem;">+ Add Line Item</button>
+      <h2>Additional Information</h2>
+
+      <label for="special-notes">Special Instructions / Production Notes</label>
+      <textarea id="special-notes" rows="3" placeholder="e.g. special layout requirements, delivery instructions..."></textarea>
+
+      <label for="internal-notes">Internal Sales Notes (not visible to customer)</label>
+      <textarea id="internal-notes" rows="2"></textarea>
     </section>
+
     <section>
-        <h2>Additional Information</h2>
-        <label>Special Instructions / Production Notes</label>
-        <textarea id="special-notes" rows="3" placeholder="e.g. special layout requirements, delivery instructions..."></textarea>
-        <label>Internal Sales Notes (not visible to customer)</label>
-        <textarea id="internal-notes" rows="2"></textarea>
+      <h2>Attachments</h2>
+      <input type="file" id="attachments" multiple accept="image/*,.pdf" />
+      <div class="error-text" id="file-size-warning"></div>
+      <div class="help-text">
+        <strong>Note:</strong> “Prepare Email → Submit” uses your email client via <code>mailto:</code>. Browsers cannot attach files automatically.
+        If you selected attachments, you’ll need to attach them manually after the email window opens.
+      </div>
     </section>
-    <section>
-        <h2>Attachments</h2>
-        <input type="file" id="attachments" multiple accept="image/*,.pdf">
-        <div class="error-text" id="file-size-warning"></div>
-    </section>
-    <div class="total-display" id="grand-total-display">
-        Estimated Total: $0.00
-    </div>
+
+    <div class="total-display" id="grand-total-display">Estimated Total: $0.00</div>
+
     <section style="text-align:center; padding-bottom:2rem;">
-        <button id="reset-form">Reset Form</button>
-        <button id="export-pdf">Export PDF</button>
-        <button id="send-email">Prepare Email → Submit</button>
-        <div id="submit-feedback" style="margin-top:1.4rem; color:#15803d; font-weight:600; min-height:1.6em;"></div>
+      <button id="reset-form" class="secondary" type="button">Reset Form</button>
+      <button id="export-pdf" type="button">Export PDF</button>
+      <button id="send-email" type="button">Prepare Email → Submit</button>
+      <div id="submit-feedback" style="margin-top:1.4rem; color:#15803d; font-weight:600; min-height:1.6em;"></div>
     </section>
+
     <!-- Color Preview Modal -->
-    <div id="preview-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" aria-label="Close preview">&times;</span>
-            <img id="large-color-preview" src="" alt="Color sample large view" style="max-width:100%; max-height:68vh; border-radius:10px;">
-            <div id="color-name-display" style="margin-top:1.1rem; font-size:1.2rem; font-weight:600;"></div>
-        </div>
+    <div id="preview-modal" class="modal" aria-hidden="true">
+      <div class="modal-content" role="dialog" aria-modal="true" aria-label="Color preview">
+        <span class="close-modal" aria-label="Close preview">&times;</span>
+        <img id="large-color-preview" src="" alt="Color sample large view" style="max-width:100%; max-height:68vh; border-radius:10px;">
+        <div id="color-name-display" style="margin-top:1.1rem; font-size:1.2rem; font-weight:600;"></div>
+      </div>
     </div>
-</div>
-<script>
-// ============================================================================
-// CONFIGURATION
-// ============================================================================
-const CONFIG = {
-    prices: {
-        system: 8.00,  // Equivalent for display, but calculated as grooved + dexdry
+  </div>
+
+  <script>
+    // ============================================================================
+    // CONFIGURATION
+    // ============================================================================
+    const CONFIG = {
+      prices: {
+        system: 8.00,  // display-only (system subtotal uses grooved + dexdry)
         grooved: 6.00,
         solid: 6.00,
         dexdry: 2.00,
         screws: 37.00,
         plugs: 33.79
-    },
-    board: {
+      },
+      board: {
         effectiveWidthFt: (5.5 + 0.125) / 12,
         wasteFactor: 1.10,
         standardLengths: [12, 16, 20],
         defaultLength: 16,
         maxLength: 40
-    },
-    fasteners: {
+      },
+      fasteners: {
         joistSpacingInches: 16,
         screwsPerIntersection: 2,
         screwsPerBox: 375
+      },
+      attachments: {
+        maxTotalBytes: 10 * 1024 * 1024 // 10MB
+      }
+    };
+
+    const PRODUCTS = {
+      system: { name: "AmeriDex System Boards (Grooved + Dexerdry)", hasColor: true,  isLengthBased: true,  bundleDex: true  },
+      grooved:{ name: "Grooved Deck Boards (no Dexerdry)",            hasColor: true,  isLengthBased: true,  bundleDex: false },
+      solid:  { name: "Solid Edge Deck Boards",                      hasColor: true,  isLengthBased: true,  bundleDex: false },
+      dexdry: { name: "Dexerdry Seals (standalone)",                  hasColor: false, isLengthBased: true,  bundleDex: false },
+      screws: { name: "Epoxy-Coated Screws",                          hasColor: false, isLengthBased: false, bundleDex: false },
+      plugs:  { name: "Color-Matching Plugs",                         hasColor: false, isLengthBased: false, bundleDex: false },
+      custom: { name: "Custom / Manual Item",                         hasColor: false, isLengthBased: false, bundleDex: false }
+    };
+
+    const COLORS = ["Driftwood","Khaki","Slate","Beachwood","Chestnut","Redwood","Hazelnut"];
+    const COLOR_HEX = {
+      "Driftwood": "#B0A89D",
+      "Khaki": "#C9B79C",
+      "Slate": "#6B7880",
+      "Beachwood": "#D4C9B0",
+      "Chestnut": "#8B5A2B",
+      "Redwood": "#A45A52",
+      "Hazelnut": "#B89F7F"
+    };
+
+    let lines = [];
+    let deck = { length: 0, width: 0, orientation: "perpendicular" };
+    let lastTotal = 0;
+
+    const tbody = document.querySelector("#order-lines tbody");
+
+    const modal = document.getElementById("preview-modal");
+    const largeImg = document.getElementById("large-color-preview");
+    const colorTitle = document.getElementById("color-name-display");
+
+    // ============================================================================
+    // UTILITIES
+    // ============================================================================
+    function formatMoney(n) {
+      const num = Number.isFinite(n) ? n : 0;
+      return "$" + num.toFixed(2);
     }
-};
-const PRODUCTS = {
-    system: { name: "AmeriDex System Boards (Grooved + Dexerdry)", hasColor: true, isLengthBased: true, bundleDex: true },
-    grooved: { name: "Grooved Deck Boards (no Dexerdry)", hasColor: true, isLengthBased: true, bundleDex: false },
-    solid: { name: "Solid Edge Deck Boards", hasColor: true, isLengthBased: true, bundleDex: false },
-    dexdry: { name: "Dexerdry Seals (standalone)", hasColor: false, isLengthBased: true, bundleDex: false },
-    screws: { name: "Epoxy-Coated Screws", hasColor: false, isLengthBased: false, bundleDex: false },
-    plugs: { name: "Color-Matching Plugs", hasColor: false, isLengthBased: false, bundleDex: false },
-    custom: { name: "Custom / Manual Item", hasColor: false, isLengthBased: false, bundleDex: false }
-};
-const COLORS = ["Driftwood","Khaki","Slate","Beachwood","Chestnut","Redwood","Hazelnut"];
-const COLOR_HEX = {
-    "Driftwood": "#B0A89D",
-    "Khaki": "#C9B79C",
-    "Slate": "#6B7880",
-    "Beachwood": "#D4C9B0",
-    "Chestnut": "#8B5A2B",
-    "Redwood": "#A45A52",
-    "Hazelnut": "#B89F7F"
-};
-let lines = [];
-let deck = { length: 0, width: 0, orientation: "perpendicular" };
-const tbody = document.querySelector("#order-lines tbody");
-const modal = document.getElementById("preview-modal");
-const largeImg = document.getElementById("large-color-preview");
-const colorTitle = document.getElementById("color-name-display");
-// ============================================================================
-// EVENT LISTENERS
-// ============================================================================
-document.getElementById("use-calculator").addEventListener("change", e => {
-    document.getElementById("calculator-panel").style.display = e.target.checked ? "block" : "none";
-});
-["picture-framing", "stairs-needed"].forEach(id => {
-    document.getElementById(id).addEventListener("change", e => {
-        document.getElementById(id.replace("-needed","") + "-note").style.display = e.target.checked ? "block" : "none";
-    });
-});
-document.getElementById("add-line").onclick = () => addLine();
-document.getElementById("calculate-suggest").onclick = runCalculator;
-modal.querySelector(".close-modal").onclick = () => modal.style.display = "none";
-modal.onclick = e => { if (e.target === modal) modal.style.display = "none"; };
-document.getElementById("reset-form").onclick = () => {
-    if (!confirm("Reset entire form? All data will be lost.")) return;
-    lines = [];
-    renderLines();
-    updateTotalsAndHints();
-    document.querySelectorAll("input:not([type=checkbox]), textarea, select").forEach(el => el.value = "");
-    document.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = cb.id === "same-as-customer");
-    document.getElementById("shipping-fields").style.display = "none";
-    document.querySelectorAll(".error-text").forEach(el => el.textContent = "");
-};
-document.getElementById("export-pdf").onclick = generatePDF;
-document.getElementById("send-email").onclick = prepareEmailSubmission;
-// Same as customer toggle
-document.getElementById("same-as-customer").addEventListener("change", function() {
-    document.getElementById("shipping-fields").style.display = this.checked ? "none" : "block";
-    if (this.checked) {
-        ['street','city','state','zip'].forEach(part => {
-            document.getElementById(`ship-${part}`).value = document.getElementById(`cust-${part}`).value;
-        });
+
+    function safeNumber(value, fallback = 0) {
+      const n = typeof value === "number" ? value : parseFloat(value);
+      return Number.isFinite(n) ? n : fallback;
     }
-});
-// ============================================================================
-// GEOAPIFY ADDRESS AUTOCOMPLETE (direct API + custom dropdown)
-// ============================================================================
-const geoapifyKey = "4440450d4460462c92fe521f3cb59976";
-let abortController = null;
-function initAddressAutocomplete() {
-    const input = document.getElementById('cust-street');
-    if (!input) return;
-    const wrapper = input.parentElement;
-    wrapper.style.position = "relative";
-    const suggestionsContainer = document.createElement("div");
-    suggestionsContainer.className = "autocomplete-items";
-    suggestionsContainer.style.display = "none";
-    wrapper.appendChild(suggestionsContainer);
-    document.addEventListener("click", e => {
-        if (!wrapper.contains(e.target)) suggestionsContainer.style.display = "none";
+
+    function setError(inputEl, errEl, msg) {
+      if (inputEl) inputEl.classList.add("invalid");
+      if (errEl) errEl.textContent = msg || "";
+    }
+
+    function clearError(inputEl, errEl) {
+      if (inputEl) inputEl.classList.remove("invalid");
+      if (errEl) errEl.textContent = "";
+    }
+
+    function normalizeStateInput(el) {
+      if (!el) return;
+      el.value = (el.value || "").replace(/[^a-z]/gi, "").toUpperCase().slice(0, 2);
+    }
+
+    function isValidZip(zip) {
+      // 12345 or 12345-6789
+      return /^\d{5}(-\d{4})?$/.test((zip || "").trim());
+    }
+
+    function closeModal() {
+      modal.style.display = "none";
+      modal.setAttribute("aria-hidden", "true");
+    }
+
+    function openModal() {
+      modal.style.display = "flex";
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    // ============================================================================
+    // EVENT LISTENERS (TOP-LEVEL UI)
+    // ============================================================================
+    document.getElementById("use-calculator").addEventListener("change", (e) => {
+      document.getElementById("calculator-panel").style.display = e.target.checked ? "block" : "none";
     });
-    let timeout = null;
-    input.addEventListener("input", () => {
+
+    // Notes mapping (fixes prior ID mismatch bug)
+    const NOTE_MAP = {
+      "picture-framing": "framing-note",
+      "stairs-needed": "stairs-note"
+    };
+    Object.keys(NOTE_MAP).forEach((cbId) => {
+      const cb = document.getElementById(cbId);
+      cb.addEventListener("change", (e) => {
+        const note = document.getElementById(NOTE_MAP[cbId]);
+        if (note) note.style.display = e.target.checked ? "block" : "none";
+      });
+    });
+
+    document.getElementById("add-line").addEventListener("click", () => addLine());
+
+    document.getElementById("calculate-suggest").addEventListener("click", runCalculator);
+
+    modal.querySelector(".close-modal").addEventListener("click", closeModal);
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+    document.getElementById("export-pdf").addEventListener("click", generatePDF);
+    document.getElementById("send-email").addEventListener("click", prepareEmailSubmission);
+
+    document.getElementById("reset-form").addEventListener("click", () => {
+      if (!confirm("Reset entire form? All data will be lost.")) return;
+      hardReset();
+    });
+
+    // Same as customer toggle
+    document.getElementById("same-as-customer").addEventListener("change", function() {
+      document.getElementById("shipping-fields").style.display = this.checked ? "none" : "block";
+      if (this.checked) syncShippingNow();
+    });
+
+    // Keep shipping synced while Same-as is checked (rep-friendly)
+    ["street","city","state","zip"].forEach(part => {
+      const custEl = document.getElementById(`cust-${part}`);
+      if (!custEl) return;
+
+      custEl.addEventListener("input", () => {
+        if (document.getElementById("same-as-customer").checked) {
+          const shipEl = document.getElementById(`ship-${part}`);
+          if (shipEl) shipEl.value = custEl.value;
+        }
+      });
+    });
+
+    // Normalize state inputs
+    document.getElementById("cust-state").addEventListener("input", (e) => normalizeStateInput(e.target));
+    document.getElementById("ship-state").addEventListener("input", (e) => normalizeStateInput(e.target));
+
+    // ============================================================================
+    // GEOAPIFY ADDRESS AUTOCOMPLETE (direct API + custom dropdown)
+    // ============================================================================
+    // SECURITY NOTE: client-side API keys are visible to anyone who views page source.
+    // Restrict this key by allowed domains in Geoapify, or proxy server-side if needed.
+    const GEOAPIFY_KEY = "4440450d4460462c92fe521f3cb59976";
+
+    let abortController = null;
+
+    function initAddressAutocomplete() {
+      const input = document.getElementById("cust-street");
+      const suggestionsContainer = document.getElementById("cust-street-suggestions");
+      if (!input || !suggestionsContainer) return;
+
+      function hideSuggestions() {
+        suggestionsContainer.style.display = "none";
+        suggestionsContainer.innerHTML = "";
+      }
+
+      document.addEventListener("click", (e) => {
+        const wrapper = input.closest(".autocomplete-wrapper");
+        if (!wrapper || !wrapper.contains(e.target)) hideSuggestions();
+      });
+
+      let timeout = null;
+
+      input.addEventListener("input", () => {
         clearTimeout(timeout);
+
         const value = input.value.trim();
         if (value.length < 3) {
-            suggestionsContainer.style.display = "none";
-            return;
+          hideSuggestions();
+          return;
         }
+
         timeout = setTimeout(async () => {
-            if (abortController) abortController.abort();
-            abortController = new AbortController();
-            try {
-                const response = await fetch(
-                    `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(value)}&apiKey=${geoapifyKey}&lang=en&filter=countrycode:us&type=street_address&limit=7`,
-                    { signal: abortController.signal }
-                );
-                const data = await response.json();
-                suggestionsContainer.innerHTML = "";
-                if (data.features && data.features.length > 0) {
-                    data.features.forEach(feature => {
-                        const item = document.createElement("div");
-                        item.className = "autocomplete-item";
-                        item.textContent = feature.properties.formatted || feature.properties.address_line1 || "Unknown address";
-                        item.onclick = () => {
-                            input.value = feature.properties.street || feature.properties.address_line1 || '';
-                            document.getElementById('cust-city').value = feature.properties.city || feature.properties.locality || '';
-                            document.getElementById('cust-state').value = feature.properties.state_code || feature.properties.state || '';
-                            document.getElementById('cust-zip').value = feature.properties.postcode || '';
-                            if (document.getElementById('same-as-customer').checked) {
-                                document.getElementById('ship-street').value = input.value;
-                                document.getElementById('ship-city').value = document.getElementById('cust-city').value;
-                                document.getElementById('ship-state').value = document.getElementById('cust-state').value;
-                                document.getElementById('ship-zip').value = document.getElementById('cust-zip').value;
-                            }
-                            suggestionsContainer.style.display = "none";
-                        };
-                        suggestionsContainer.appendChild(item);
-                    });
-                    suggestionsContainer.style.display = "block";
-                } else {
-                    suggestionsContainer.style.display = "none";
-                }
-            } catch (err) {
-                if (err.name !== "AbortError") {
-                    console.error("Geoapify error:", err);
-                    suggestionsContainer.style.display = "none";
-                }
+          if (abortController) abortController.abort();
+          abortController = new AbortController();
+
+          try {
+            const url =
+              "https://api.geoapify.com/v1/geocode/autocomplete" +
+              `?text=${encodeURIComponent(value)}` +
+              `&apiKey=${encodeURIComponent(GEOAPIFY_KEY)}` +
+              "&lang=en&filter=countrycode:us&type=street_address&limit=7";
+
+            const response = await fetch(url, { signal: abortController.signal });
+            const data = await response.json();
+
+            suggestionsContainer.innerHTML = "";
+
+            if (data && Array.isArray(data.features) && data.features.length > 0) {
+              data.features.forEach((feature) => {
+                const props = feature.properties || {};
+                const display = props.formatted || props.address_line1 || "Unknown address";
+
+                const item = document.createElement("div");
+                item.className = "autocomplete-item";
+                item.textContent = display;
+
+                item.addEventListener("click", () => {
+                  // IMPORTANT: use address_line1 (street + number). props.street often omits housenumber.
+                  const streetLine = props.address_line1 || props.formatted || "";
+                  input.value = streetLine;
+
+                  document.getElementById("cust-city").value  = props.city || props.locality || "";
+                  document.getElementById("cust-state").value = (props.state_code || props.state || "").toString().slice(0, 2);
+                  normalizeStateInput(document.getElementById("cust-state"));
+                  document.getElementById("cust-zip").value   = props.postcode || "";
+
+                  if (document.getElementById("same-as-customer").checked) {
+                    syncShippingNow();
+                  }
+
+                  hideSuggestions();
+                });
+
+                suggestionsContainer.appendChild(item);
+              });
+
+              suggestionsContainer.style.display = "block";
+            } else {
+              hideSuggestions();
             }
-        }, 300); // 300ms debounce
-    });
-}
-// ============================================================================
-// COLOR PREVIEW CREATION WITH FALLBACK
-// ============================================================================
-function createColorPreview(color) {
-    const preview = document.createElement("img");
-    preview.className = "preview-img";
-    preview.src = `colors/${color.toLowerCase()}.jpg`;
-    preview.alt = `${color} preview`;
-    preview.onerror = () => {
+          } catch (err) {
+            if (err && err.name === "AbortError") return;
+            console.error("Geoapify error:", err);
+            hideSuggestions();
+          }
+        }, 300);
+      });
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          suggestionsContainer.style.display = "none";
+        }
+      });
+    }
+
+    function syncShippingNow() {
+      ["street","city","state","zip"].forEach(part => {
+        const cust = document.getElementById(`cust-${part}`);
+        const ship = document.getElementById(`ship-${part}`);
+        if (cust && ship) ship.value = cust.value;
+      });
+    }
+
+    // ============================================================================
+    // COLOR PREVIEW CREATION WITH FALLBACK
+    // ============================================================================
+    function createColorPreview(color) {
+      const preview = document.createElement("img");
+      preview.className = "preview-img";
+      preview.src = `colors/${String(color).toLowerCase()}.jpg`;
+      preview.alt = `${color} preview`;
+
+      preview.onerror = () => {
         const canvas = document.createElement("canvas");
         canvas.width = 52;
         canvas.height = 52;
@@ -521,350 +741,813 @@ function createColorPreview(color) {
         ctx.fillRect(0, 0, 52, 52);
         ctx.fillStyle = "#FFFFFF";
         ctx.font = "20px Arial";
-        ctx.fillText(color.charAt(0), 18, 32);
+        ctx.fillText(String(color).charAt(0), 18, 32);
         preview.src = canvas.toDataURL();
-    };
-    preview.onclick = () => {
+      };
+
+      preview.addEventListener("click", () => {
         largeImg.src = preview.src;
         colorTitle.textContent = color;
-        modal.style.display = "flex";
-    };
-    return preview;
-}
-// ============================================================================
-// LINE ITEMS & FORM LOGIC
-// ============================================================================
-function addLine(defaultType = "system") {
-    lines.push({
+        openModal();
+      });
+
+      return preview;
+    }
+
+    // ============================================================================
+    // LINE ITEMS & FORM LOGIC
+    // ============================================================================
+    function addLine(defaultType = "system") {
+      lines.push({
         type: defaultType,
         color: defaultType !== "custom" ? COLORS[0] : "",
-        length: CONFIG.board.defaultLength,
+        length: PRODUCTS[defaultType].isLengthBased ? CONFIG.board.defaultLength : null,
         qty: 1,
         dexdryOverride: null,
-        priceOverride: null,
-        customDesc: "",
-        customUnitPrice: 0
-    });
-    renderLines();
-    updateTotalsAndHints();
-}
-function renderLines() {
-    tbody.innerHTML = "";
-    lines.forEach((item, index) => {
+        priceOverride: null,     // for non-system / non-custom products
+        customDesc: "",          // for custom
+        customUnitPrice: null    // for custom
+      });
+
+      renderLines();
+      updateTotalsAndHints();
+    }
+
+    function renderLines() {
+      tbody.innerHTML = "";
+
+      lines.forEach((item, index) => {
         const prod = PRODUCTS[item.type] || PRODUCTS.custom;
         const tr = document.createElement("tr");
         let td;
+
         // Product
         td = document.createElement("td");
         td.setAttribute("data-label", "Product");
+
         const select = document.createElement("select");
-        Object.keys(PRODUCTS).forEach(key => {
-            const option = document.createElement("option");
-            option.value = key;
-            option.textContent = PRODUCTS[key].name;
-            if (key === item.type) option.selected = true;
-            select.appendChild(option);
+        Object.keys(PRODUCTS).forEach((key) => {
+          const option = document.createElement("option");
+          option.value = key;
+          option.textContent = PRODUCTS[key].name;
+          if (key === item.type) option.selected = true;
+          select.appendChild(option);
         });
-        select.onchange = () => {
-            item.type = select.value;
-            if (!PRODUCTS[item.type].isLengthBased) item.length = null;
-            if (item.type !== "system") item.dexdryOverride = null;
-            if (item.type !== "custom") {
-                item.customDesc = "";
-                item.customUnitPrice = 0;
-            }
-            renderLines();
-            updateTotalsAndHints();
-        };
+
+        select.addEventListener("change", () => {
+          item.type = select.value;
+
+          const newProd = PRODUCTS[item.type];
+          // Reset fields based on type
+          if (!newProd.isLengthBased) item.length = null;
+          if (newProd.isLengthBased && !Number.isFinite(item.length)) item.length = CONFIG.board.defaultLength;
+
+          if (item.type !== "system") item.dexdryOverride = null;
+
+          if (item.type !== "custom") {
+            item.customDesc = "";
+            item.customUnitPrice = null;
+          }
+
+          // Clear price override when switching types (rep-safe)
+          if (item.type === "custom" || item.type === "system") {
+            item.priceOverride = null;
+          }
+
+          // Ensure color exists if needed
+          if (newProd.hasColor && !COLORS.includes(item.color)) item.color = COLORS[0];
+          if (!newProd.hasColor) item.color = "";
+
+          renderLines();
+          updateTotalsAndHints();
+        });
+
         td.appendChild(select);
+
+        // Custom description input
+        if (item.type === "custom") {
+          const desc = document.createElement("input");
+          desc.type = "text";
+          desc.placeholder = "Description (required)";
+          desc.style.marginTop = "0.6rem";
+          desc.value = item.customDesc || "";
+          desc.addEventListener("input", (e) => {
+            item.customDesc = e.target.value;
+            updateTotalsAndHints();
+          });
+          td.appendChild(desc);
+        }
+
         tr.appendChild(td);
+
         // Color
         td = document.createElement("td");
         td.setAttribute("data-label", "Color");
+
         if (prod.hasColor) {
-            const colorSelect = document.createElement("select");
-            COLORS.forEach(color => {
-                const option = document.createElement("option");
-                option.value = color;
-                option.textContent = color;
-                if (color === item.color) option.selected = true;
-                colorSelect.appendChild(option);
-            });
-            colorSelect.onchange = e => { 
-                item.color = e.target.value; 
-                renderLines(); // Re-render to update preview
-                updateTotalsAndHints(); 
-            };
-            td.appendChild(colorSelect);
-            td.appendChild(createColorPreview(item.color));
+          const colorSelect = document.createElement("select");
+          COLORS.forEach((c) => {
+            const option = document.createElement("option");
+            option.value = c;
+            option.textContent = c;
+            if (c === item.color) option.selected = true;
+            colorSelect.appendChild(option);
+          });
+
+          colorSelect.addEventListener("change", (e) => {
+            item.color = e.target.value;
+            renderLines(); // refresh preview
+            updateTotalsAndHints();
+          });
+
+          td.appendChild(colorSelect);
+          td.appendChild(createColorPreview(item.color));
+        } else {
+          td.textContent = "—";
+          td.style.color = "var(--gray)";
         }
+
         tr.appendChild(td);
+
         // Length
         td = document.createElement("td");
         td.setAttribute("data-label", "Length ft");
+
         if (prod.isLengthBased) {
-            const lengthInput = document.createElement("input");
-            lengthInput.type = "number";
-            lengthInput.step = "0.1";
-            lengthInput.min = "0.1";
-            lengthInput.max = CONFIG.board.maxLength;
-            lengthInput.value = item.length || "";
-            lengthInput.oninput = e => {
-                item.length = parseFloat(e.target.value) || 0;
-                updateTotalsAndHints();
-            };
-            td.appendChild(lengthInput);
+          const lengthInput = document.createElement("input");
+          lengthInput.type = "number";
+          lengthInput.step = "0.1";
+          lengthInput.min = "0.1";
+          lengthInput.max = String(CONFIG.board.maxLength);
+          lengthInput.value = item.length ?? "";
+
+          lengthInput.addEventListener("input", (e) => {
+            const n = safeNumber(e.target.value, 0);
+            item.length = n;
+            updateTotalsAndHints();
+          });
+
+          td.appendChild(lengthInput);
+        } else {
+          td.textContent = "—";
+          td.style.color = "var(--gray)";
         }
+
         tr.appendChild(td);
+
         // Qty
         td = document.createElement("td");
         td.setAttribute("data-label", "Qty");
+
         const qtyInput = document.createElement("input");
         qtyInput.type = "number";
         qtyInput.min = "1";
         qtyInput.step = "1";
         qtyInput.value = item.qty;
-        qtyInput.oninput = e => {
-            item.qty = Math.max(1, parseInt(e.target.value) || 1);
-            updateTotalsAndHints();
-        };
+
+        qtyInput.addEventListener("input", (e) => {
+          item.qty = Math.max(1, parseInt(e.target.value, 10) || 1);
+          updateTotalsAndHints();
+        });
+
         td.appendChild(qtyInput);
         tr.appendChild(td);
-        // Dexerdry ft
+
+        // Dexerdry ft (system only)
         td = document.createElement("td");
         td.setAttribute("data-label", "Dexerdry ft");
+
         if (item.type === "system") {
-            const calcFt = (item.qty - 1) * (item.length || 0) * CONFIG.board.wasteFactor;
-            const displayFt = item.dexdryOverride ?? calcFt;
-            const span = document.createElement("span");
-            span.textContent = displayFt.toFixed(1);
-            span.style.color = item.dexdryOverride !== null ? "var(--primary)" : "var(--gray)";
-            const overrideBtn = document.createElement("button");
-            overrideBtn.textContent = item.dexdryOverride !== null ? "Reset" : "Override";
-            overrideBtn.style.marginLeft = "0.6rem";
-            overrideBtn.onclick = () => {
-                if (item.dexdryOverride !== null) {
-                    item.dexdryOverride = null;
-                } else {
-                    const val = prompt("Override Dexerdry ft:", displayFt.toFixed(1));
-                    const num = parseFloat(val);
-                    if (!isNaN(num) && num >= 0) item.dexdryOverride = num;
-                }
-                renderLines();
-                updateTotalsAndHints();
-            };
-            td.appendChild(span);
-            td.appendChild(overrideBtn);
+          const calcFt = (item.qty - 1) * (item.length || 0) * CONFIG.board.wasteFactor;
+          const displayFt = (item.dexdryOverride !== null && item.dexdryOverride !== undefined)
+            ? item.dexdryOverride
+            : calcFt;
+
+          const span = document.createElement("span");
+          span.textContent = safeNumber(displayFt, 0).toFixed(1);
+          span.style.color = (item.dexdryOverride !== null && item.dexdryOverride !== undefined)
+            ? "var(--primary)"
+            : "var(--gray)";
+
+          const overrideBtn = document.createElement("button");
+          overrideBtn.type = "button";
+          overrideBtn.textContent = (item.dexdryOverride !== null && item.dexdryOverride !== undefined) ? "Reset" : "Override";
+          overrideBtn.style.marginLeft = "0.6rem";
+          overrideBtn.style.padding = "0.45rem 0.9rem";
+          overrideBtn.style.fontSize = "0.92rem";
+
+          overrideBtn.addEventListener("click", () => {
+            if (item.dexdryOverride !== null && item.dexdryOverride !== undefined) {
+              item.dexdryOverride = null;
+            } else {
+              const val = prompt("Override Dexerdry ft:", safeNumber(displayFt, 0).toFixed(1));
+              if (val === null) return;
+              const num = parseFloat(val);
+              if (Number.isFinite(num) && num >= 0) item.dexdryOverride = num;
+            }
+            renderLines();
+            updateTotalsAndHints();
+          });
+
+          td.appendChild(span);
+          td.appendChild(overrideBtn);
+        } else {
+          td.textContent = "—";
+          td.style.color = "var(--gray)";
         }
+
         tr.appendChild(td);
+
         // Unit Price
         td = document.createElement("td");
         td.setAttribute("data-label", "Unit Price");
+
         if (item.type === "system") {
-            td.textContent = "Composite";
-            td.style.color = "var(--gray)";
+          td.textContent = "Composite";
+          td.style.color = "var(--gray)";
+        } else if (item.type === "custom") {
+          const priceInput = document.createElement("input");
+          priceInput.type = "number";
+          priceInput.step = "0.01";
+          // Allow negative for discounts if you want (rep-friendly)
+          priceInput.placeholder = "0.00";
+          priceInput.value = (item.customUnitPrice !== null && item.customUnitPrice !== undefined)
+            ? String(item.customUnitPrice)
+            : "";
+
+          priceInput.addEventListener("input", (e) => {
+            const v = parseFloat(e.target.value);
+            item.customUnitPrice = Number.isFinite(v) ? v : null;
+            updateTotalsAndHints();
+          });
+
+          td.appendChild(priceInput);
         } else {
-            const priceInput = document.createElement("input");
-            priceInput.type = "number";
-            priceInput.step = "0.01";
-            priceInput.min = "0";
-            priceInput.placeholder = (CONFIG.prices[item.type] || 0).toFixed(2);
-            priceInput.value = item.priceOverride ?? "";
-            priceInput.oninput = e => {
-                item.priceOverride = parseFloat(e.target.value);
-                updateTotalsAndHints();
-            };
-            td.appendChild(priceInput);
+          const base = CONFIG.prices[item.type] ?? 0;
+
+          const priceInput = document.createElement("input");
+          priceInput.type = "number";
+          priceInput.step = "0.01";
+          priceInput.min = "0";
+          priceInput.placeholder = base.toFixed(2);
+          priceInput.value = (item.priceOverride !== null && item.priceOverride !== undefined)
+            ? String(item.priceOverride)
+            : "";
+
+          // FIX: never store NaN (clearing field must not break totals)
+          priceInput.addEventListener("input", (e) => {
+            const v = parseFloat(e.target.value);
+            item.priceOverride = Number.isFinite(v) ? v : null;
+            updateTotalsAndHints();
+          });
+
+          td.appendChild(priceInput);
         }
+
         tr.appendChild(td);
+
         // Subtotal
         td = document.createElement("td");
         td.setAttribute("data-label", "Subtotal");
         td.id = `subtotal-${index}`;
         tr.appendChild(td);
+
         // Remove
         td = document.createElement("td");
         const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
         removeBtn.textContent = "×";
         removeBtn.className = "danger";
-        removeBtn.onclick = () => {
-            lines.splice(index, 1);
-            renderLines();
-            updateTotalsAndHints();
-        };
+        removeBtn.addEventListener("click", () => {
+          lines.splice(index, 1);
+          renderLines();
+          updateTotalsAndHints();
+        });
         td.appendChild(removeBtn);
         tr.appendChild(td);
+
         tbody.appendChild(tr);
-    });
-}
-function getLineSubtotal(item) {
-    const basePrice = item.priceOverride ?? CONFIG.prices[item.type] ?? 0;
-    if (item.type === "system") {
-        const boardFt = item.qty * (item.length || 0);
-        const dexFt = item.dexdryOverride ?? (item.qty - 1) * (item.length || 0) * CONFIG.board.wasteFactor;
+      });
+    }
+
+    function getLineSubtotal(item) {
+      if (!item || !item.type) return 0;
+
+      if (item.type === "system") {
+        const boardFt = safeNumber(item.qty, 0) * safeNumber(item.length, 0);
+        const dexFt = (item.dexdryOverride !== null && item.dexdryOverride !== undefined)
+          ? safeNumber(item.dexdryOverride, 0)
+          : (safeNumber(item.qty, 0) - 1) * safeNumber(item.length, 0) * CONFIG.board.wasteFactor;
+
         return (boardFt * CONFIG.prices.grooved) + (dexFt * CONFIG.prices.dexdry);
+      }
+
+      if (item.type === "custom") {
+        const p = (item.customUnitPrice !== null && item.customUnitPrice !== undefined)
+          ? safeNumber(item.customUnitPrice, 0)
+          : 0;
+        return safeNumber(item.qty, 0) * p;
+      }
+
+      const basePrice = (item.priceOverride !== null && item.priceOverride !== undefined)
+        ? safeNumber(item.priceOverride, 0)
+        : safeNumber(CONFIG.prices[item.type], 0);
+
+      if (["grooved", "solid", "dexdry"].includes(item.type)) {
+        return safeNumber(item.qty, 0) * safeNumber(item.length, 0) * basePrice;
+      }
+
+      // screws, plugs, etc.
+      return safeNumber(item.qty, 0) * basePrice;
     }
-    if (["grooved","solid","dexdry"].includes(item.type)) {
-        return item.qty * (item.length || 0) * basePrice;
-    }
-    return item.qty * basePrice;
-}
-function updateTotalsAndHints() {
-    let total = 0;
-    let groovedCount = 0;
-    lines.forEach((item, i) => {
-        const sub = getLineSubtotal(item);
+
+    function updateTotalsAndHints() {
+      let total = 0;
+      let groovedCount = 0;
+
+      for (let i = 0; i < lines.length; i++) {
+        const item = lines[i];
+        const sub = safeNumber(getLineSubtotal(item), 0);
         total += sub;
-        document.getElementById(`subtotal-${i}`).textContent = "$" + sub.toFixed(2);
-        if (["system","grooved"].includes(item.type)) groovedCount += item.qty;
-    });
-    document.getElementById("grand-total-display").textContent = `Estimated Total: $${total.toFixed(2)}`;
-    if (groovedCount > 0 && deck.length > 0) {
+
+        const cell = document.getElementById(`subtotal-${i}`);
+        if (cell) cell.textContent = formatMoney(sub);
+
+        if (["system","grooved"].includes(item.type)) groovedCount += safeNumber(item.qty, 0);
+      }
+
+      lastTotal = total;
+      document.getElementById("grand-total-display").textContent = `Estimated Total: ${formatMoney(total)}`;
+
+      const fastenerEl = document.getElementById("fastener-suggestion");
+      if (groovedCount > 0 && deck.length > 0 && deck.width > 0) {
         const span = deck.orientation === "perpendicular" ? deck.length : deck.width;
-        const joists = Math.floor(span * 12 / CONFIG.fasteners.joistSpacingInches) + 1;
+        const joists = Math.floor((span * 12) / CONFIG.fasteners.joistSpacingInches) + 1;
         const intersections = groovedCount * joists;
         const screwBoxes = Math.ceil((intersections * CONFIG.fasteners.screwsPerIntersection) / CONFIG.fasteners.screwsPerBox);
-        document.getElementById("fastener-suggestion").innerHTML = `Suggested fastener boxes: ${screwBoxes} each of screws & plugs`;
-    } else {
-        document.getElementById("fastener-suggestion").innerHTML = "";
+        fastenerEl.textContent = `Suggested fastener boxes: ${screwBoxes} each of screws & plugs (based on calculator dimensions)`;
+      } else if (groovedCount > 0 && (deck.length <= 0 || deck.width <= 0)) {
+        fastenerEl.textContent = `Fastener estimate available after running Deck Calculator (optional).`;
+      } else {
+        fastenerEl.textContent = "";
+      }
     }
-}
-function runCalculator() {
-    deck.length = parseFloat(document.getElementById("deck-length").value) || 0;
-    deck.width = parseFloat(document.getElementById("deck-width").value) || 0;
-    deck.orientation = document.getElementById("board-orientation").value;
-    if (deck.length < 1 || deck.width < 1) {
-        document.getElementById("calc-feedback").innerHTML = `<span style="color:var(--error);">Please enter valid deck dimensions</span>`;
+
+    // ============================================================================
+    // CALCULATOR
+    // ============================================================================
+    function runCalculator() {
+      deck.length = safeNumber(document.getElementById("deck-length").value, 0);
+      deck.width = safeNumber(document.getElementById("deck-width").value, 0);
+      deck.orientation = document.getElementById("board-orientation").value || "perpendicular";
+
+      const feedback = document.getElementById("calc-feedback");
+
+      if (deck.length < 1 || deck.width < 1) {
+        feedback.innerHTML = `<span style="color:var(--error);">Please enter valid deck dimensions</span>`;
+        updateTotalsAndHints();
         return;
-    }
-    const span = deck.orientation === "perpendicular" ? deck.length : deck.width;
-    const run = deck.orientation === "perpendicular" ? deck.width : deck.length;
-    const boards = Math.ceil(span / CONFIG.board.effectiveWidthFt * CONFIG.board.wasteFactor);
-    const dexdryFt = (boards - 1) * run * CONFIG.board.wasteFactor;
-    // Suggest best length
-    let suggestedLength = CONFIG.board.standardLengths.find(len => len >= run);
-    if (!suggestedLength) suggestedLength = Math.ceil(run / 4) * 4; // Round up to nearest 4ft if over 20
-    suggestedLength = Math.min(suggestedLength, CONFIG.board.maxLength);
-    document.getElementById("calc-feedback").innerHTML = `Suggested: ${boards} System Boards @ ${suggestedLength.toFixed(0)} ft<br>Dexerdry: ${dexdryFt.toFixed(1)} ft`;
-    if (confirm("Add suggested items?")) {
+      }
+
+      const span = deck.orientation === "perpendicular" ? deck.length : deck.width;
+      const run  = deck.orientation === "perpendicular" ? deck.width  : deck.length;
+
+      const boards = Math.ceil((span / CONFIG.board.effectiveWidthFt) * CONFIG.board.wasteFactor);
+      const dexdryFt = (boards - 1) * run * CONFIG.board.wasteFactor;
+
+      // Suggest best standard length >= run
+      let suggestedLength = CONFIG.board.standardLengths.find(len => len >= run);
+      if (!suggestedLength) suggestedLength = Math.ceil(run / 4) * 4; // Round up to nearest 4ft if > 20
+      suggestedLength = Math.min(suggestedLength, CONFIG.board.maxLength);
+
+      feedback.innerHTML =
+        `Suggested: <strong>${boards}</strong> System Boards @ <strong>${suggestedLength.toFixed(0)} ft</strong><br>` +
+        `Dexerdry (est.): <strong>${dexdryFt.toFixed(1)} ft</strong>`;
+
+      updateTotalsAndHints();
+
+      if (confirm("Add suggested items as a new System Boards line item?")) {
         addLine("system");
-        lines[lines.length - 1].qty = boards;
-        lines[lines.length - 1].length = suggestedLength;
+        const last = lines[lines.length - 1];
+        last.qty = boards;
+        last.length = suggestedLength;
         renderLines();
         updateTotalsAndHints();
+      }
     }
-}
-function validateForm() {
-    let valid = true;
-    const required = [
-        {id: "cust-name", msg: "Name is required"},
-        {id: "cust-street", msg: "Street is required"},
-        {id: "cust-city", msg: "City is required"},
-        {id: "cust-state", msg: "State is required"},
-        {id: "cust-zip", msg: "ZIP is required"}
-    ];
-    required.forEach(f => {
-        const el = document.getElementById(f.id);
-        const err = document.getElementById("err-" + f.id.split('-')[1] || f.id.split('-')[0]);
-        if (!el.value.trim()) {
-            err.textContent = f.msg;
-            el.classList.add("invalid");
-            valid = false;
-        } else {
-            err.textContent = "";
-            el.classList.remove("invalid");
-        }
-    });
-    let size = 0;
-    [...document.getElementById("attachments").files].forEach(f => size += f.size);
-    document.getElementById("file-size-warning").textContent = size > 10*1024*1024 ? "Attachments > 10 MB" : "";
-    if (size > 10*1024*1024) valid = false;
-    if (lines.length === 0) {
-        alert("Add at least one line item");
+
+    // ============================================================================
+    // VALIDATION
+    // ============================================================================
+    function validateLineItems() {
+      let ok = true;
+      const errLines = document.getElementById("err-lines");
+      errLines.textContent = "";
+
+      if (lines.length === 0) {
+        errLines.textContent = "Add at least one line item.";
         return false;
+      }
+
+      // Validate each line
+      const problems = [];
+
+      lines.forEach((item, idx) => {
+        const prod = PRODUCTS[item.type] || PRODUCTS.custom;
+
+        // Qty must be >= 1
+        if (!Number.isFinite(item.qty) || item.qty < 1) {
+          problems.push(`Line ${idx + 1}: Qty must be at least 1.`);
+          ok = false;
+        }
+
+        // Length-based items must have valid length
+        if (prod.isLengthBased) {
+          const len = safeNumber(item.length, 0);
+          if (!(len > 0) || len > CONFIG.board.maxLength) {
+            problems.push(`Line ${idx + 1}: Length must be between 0.1 and ${CONFIG.board.maxLength} ft.`);
+            ok = false;
+          }
+        }
+
+        // Custom item requires description and unit price
+        if (item.type === "custom") {
+          if (!String(item.customDesc || "").trim()) {
+            problems.push(`Line ${idx + 1}: Custom item description is required.`);
+            ok = false;
+          }
+          if (item.customUnitPrice === null || item.customUnitPrice === undefined || !Number.isFinite(item.customUnitPrice)) {
+            problems.push(`Line ${idx + 1}: Custom item unit price is required.`);
+            ok = false;
+          }
+        }
+      });
+
+      if (!ok) {
+        errLines.textContent = problems.slice(0, 6).join(" ");
+        if (problems.length > 6) errLines.textContent += ` (+${problems.length - 6} more)`;
+      }
+
+      return ok;
     }
-    return valid;
-}
-function generatePDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    let y = 20;
-    doc.setFontSize(20);
-    doc.text("AmeriDex Order Estimate", 105, y, {align: "center"});
-    y += 20;
-    doc.setFontSize(12);
-    doc.text("Customer Information:", 20, y);
-    y += 10;
-    doc.text(`Name: ${document.getElementById("cust-name").value}`, 20, y);
-    y += 8;
-    doc.text(`Company: ${document.getElementById("cust-company").value}`, 20, y);
-    y += 8;
-    doc.text(`Address: ${document.getElementById("cust-street").value}, ${document.getElementById("cust-city").value}, ${document.getElementById("cust-state").value} ${document.getElementById("cust-zip").value}`, 20, y);
-    y += 8;
-    doc.text(`Phone: ${document.getElementById("cust-phone").value}`, 20, y);
-    y += 8;
-    doc.text(`Email: ${document.getElementById("cust-email").value}`, 20, y);
-    y += 15;
-    doc.text("Shipping Information:", 20, y);
-    y += 10;
-    const sameAsCust = document.getElementById("same-as-customer").checked;
-    const shipStreet = sameAsCust ? document.getElementById("cust-street").value : document.getElementById("ship-street").value;
-    const shipCity = sameAsCust ? document.getElementById("cust-city").value : document.getElementById("ship-city").value;
-    const shipState = sameAsCust ? document.getElementById("cust-state").value : document.getElementById("ship-state").value;
-    const shipZip = sameAsCust ? document.getElementById("cust-zip").value : document.getElementById("ship-zip").value;
-    doc.text(`Address: ${shipStreet}, ${shipCity}, ${shipState} ${shipZip}`, 20, y);
-    y += 8;
-    doc.text(`Preferred Delivery: ${document.getElementById("pref-delivery").value}`, 20, y);
-    y += 15;
-    doc.text("Order Lines:", 20, y);
-    y += 10;
-    lines.forEach((item, i) => {
-        doc.text(`${i+1}. ${PRODUCTS[item.type].name} - Color: ${item.color || 'N/A'} - Length: ${item.length || 'N/A'} ft - Qty: ${item.qty} - Subtotal: $${getLineSubtotal(item).toFixed(2)}`, 20, y);
-        y += 8;
-    });
-    y += 10;
-    doc.text(`Total: $${document.getElementById("grand-total-display").textContent.split(': $')[1]}`, 20, y);
-    y += 15;
-    doc.text("Notes:", 20, y);
-    y += 10;
-    doc.text(`Special: ${document.getElementById("special-notes").value}`, 20, y);
-    y += 8;
-    doc.text(`Internal: ${document.getElementById("internal-notes").value}`, 20, y);
-    doc.save("AmeriDex_Order.pdf");
-}
-function prepareEmailSubmission() {
-    if (!validateForm()) return;
-    let body = `New Order from ${document.getElementById("cust-name").value}\n\n`;
-    body += `Customer Details:\nName: ${document.getElementById("cust-name").value}\nCompany: ${document.getElementById("cust-company").value}\n`;
-    body += `Address: ${document.getElementById("cust-street").value}, ${document.getElementById("cust-city").value}, ${document.getElementById("cust-state").value} ${document.getElementById("cust-zip").value}\n`;
-    body += `Phone: ${document.getElementById("cust-phone").value}\nEmail: ${document.getElementById("cust-email").value}\n\n`;
-    body += `Shipping:\n`;
-    const sameAsCust = document.getElementById("same-as-customer").checked;
-    if (sameAsCust) {
-        body += `Same as customer\n`;
-    } else {
+
+    function validateForm() {
+      let valid = true;
+
+      const req = [
+        { input: "cust-name",   err: "err-name",   msg: "Name is required" },
+        { input: "cust-street", err: "err-street", msg: "Street is required" },
+        { input: "cust-city",   err: "err-city",   msg: "City is required" },
+        { input: "cust-state",  err: "err-state",  msg: "State is required (2 letters)" },
+        { input: "cust-zip",    err: "err-zip",    msg: "ZIP is required" }
+      ];
+
+      req.forEach(r => {
+        const el = document.getElementById(r.input);
+        const errEl = document.getElementById(r.err);
+
+        const value = (el.value || "").trim();
+        if (!value) {
+          setError(el, errEl, r.msg);
+          valid = false;
+        } else {
+          clearError(el, errEl);
+        }
+      });
+
+      // State must be 2 letters
+      const st = document.getElementById("cust-state");
+      const errSt = document.getElementById("err-state");
+      if (st.value && !/^[A-Z]{2}$/.test(st.value.trim())) {
+        setError(st, errSt, "Enter a valid 2-letter state code (e.g., FL).");
+        valid = false;
+      }
+
+      // ZIP format
+      const zip = document.getElementById("cust-zip");
+      const errZip = document.getElementById("err-zip");
+      if (zip.value && !isValidZip(zip.value)) {
+        setError(zip, errZip, "Enter a valid ZIP (12345 or 12345-6789).");
+        valid = false;
+      }
+
+      // Optional email: validate if provided
+      const email = document.getElementById("cust-email");
+      const errEmail = document.getElementById("err-email");
+      if (email.value.trim() && !email.checkValidity()) {
+        setError(email, errEmail, "Enter a valid email address.");
+        valid = false;
+      } else {
+        clearError(email, errEmail);
+      }
+
+      // Shipping validation if not same-as
+      const sameAs = document.getElementById("same-as-customer").checked;
+      if (!sameAs) {
+        const shipReq = [
+          { input: "ship-street", err: "err-ship-street", msg: "Shipping street is required" },
+          { input: "ship-city",   err: "err-ship-city",   msg: "Shipping city is required" },
+          { input: "ship-state",  err: "err-ship-state",  msg: "Shipping state is required (2 letters)" },
+          { input: "ship-zip",    err: "err-ship-zip",    msg: "Shipping ZIP is required" }
+        ];
+
+        shipReq.forEach(r => {
+          const el = document.getElementById(r.input);
+          const errEl = document.getElementById(r.err);
+          const value = (el.value || "").trim();
+          if (!value) {
+            setError(el, errEl, r.msg);
+            valid = false;
+          } else {
+            clearError(el, errEl);
+          }
+        });
+
+        const shipState = document.getElementById("ship-state");
+        const errShipState = document.getElementById("err-ship-state");
+        if (shipState.value && !/^[A-Z]{2}$/.test(shipState.value.trim())) {
+          setError(shipState, errShipState, "Enter a valid 2-letter state code (e.g., FL).");
+          valid = false;
+        }
+
+        const shipZip = document.getElementById("ship-zip");
+        const errShipZip = document.getElementById("err-ship-zip");
+        if (shipZip.value && !isValidZip(shipZip.value)) {
+          setError(shipZip, errShipZip, "Enter a valid ZIP (12345 or 12345-6789).");
+          valid = false;
+        }
+      } else {
+        // Clear shipping errors if hidden
+        ["ship-street","ship-city","ship-state","ship-zip"].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.classList.remove("invalid");
+        });
+        ["err-ship-street","err-ship-city","err-ship-state","err-ship-zip"].forEach(id => {
+          const e = document.getElementById(id);
+          if (e) e.textContent = "";
+        });
+      }
+
+      // Attachments size validation
+      let size = 0;
+      const files = [...document.getElementById("attachments").files];
+      files.forEach(f => size += f.size);
+
+      const warn = document.getElementById("file-size-warning");
+      if (size > CONFIG.attachments.maxTotalBytes) {
+        warn.textContent = "Attachments exceed 10 MB total (please reduce).";
+        valid = false;
+      } else {
+        warn.textContent = "";
+      }
+
+      // Line items validation
+      const linesOk = validateLineItems();
+      if (!linesOk) valid = false;
+
+      return valid;
+    }
+
+    // ============================================================================
+    // PDF EXPORT (with page breaks + text wrapping)
+    // ============================================================================
+    function generatePDF() {
+      // If they just want a PDF without full validation, you can remove this check.
+      if (!validateForm()) return;
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const left = 18;
+      const right = pageWidth - 18;
+      const maxLineWidth = right - left;
+
+      let y = 18;
+
+      function ensureSpace(needed = 10) {
+        const pageHeight = doc.internal.pageSize.getHeight();
+        if (y + needed > pageHeight - 15) {
+          doc.addPage();
+          y = 18;
+        }
+      }
+
+      function addLine(text, fontSize = 12, gap = 7) {
+        doc.setFontSize(fontSize);
+        const lines = doc.splitTextToSize(String(text), maxLineWidth);
+        lines.forEach((ln) => {
+          ensureSpace(gap);
+          doc.text(ln, left, y);
+          y += gap;
+        });
+      }
+
+      doc.setFontSize(20);
+      doc.text("AmeriDex Order Estimate", pageWidth / 2, y, { align: "center" });
+      y += 12;
+
+      doc.setFontSize(11);
+      addLine(`Generated: ${new Date().toLocaleString()}`, 11, 6);
+      y += 4;
+
+      addLine("Customer Information:", 13, 7);
+      addLine(`Name: ${document.getElementById("cust-name").value}`);
+      addLine(`Company: ${document.getElementById("cust-company").value || "—"}`);
+      addLine(`Address: ${document.getElementById("cust-street").value}, ${document.getElementById("cust-city").value}, ${document.getElementById("cust-state").value} ${document.getElementById("cust-zip").value}`);
+      addLine(`Phone: ${document.getElementById("cust-phone").value || "—"}`);
+      addLine(`Email: ${document.getElementById("cust-email").value || "—"}`);
+      y += 4;
+
+      addLine("Shipping Information:", 13, 7);
+      const sameAsCust = document.getElementById("same-as-customer").checked;
+
+      const shipStreet = sameAsCust ? document.getElementById("cust-street").value : document.getElementById("ship-street").value;
+      const shipCity   = sameAsCust ? document.getElementById("cust-city").value   : document.getElementById("ship-city").value;
+      const shipState  = sameAsCust ? document.getElementById("cust-state").value  : document.getElementById("ship-state").value;
+      const shipZip    = sameAsCust ? document.getElementById("cust-zip").value    : document.getElementById("ship-zip").value;
+
+      addLine(`Same as customer: ${sameAsCust ? "Yes" : "No"}`);
+      addLine(`Ship To: ${shipStreet}, ${shipCity}, ${shipState} ${shipZip}`);
+      addLine(`Preferred Delivery: ${document.getElementById("pref-delivery").value || "—"}`);
+      y += 4;
+
+      addLine("Configuration:", 13, 7);
+      addLine(`Picture Framing: ${document.getElementById("picture-framing").checked ? "Yes" : "No"}`);
+      addLine(`Stairs: ${document.getElementById("stairs-needed").checked ? "Yes" : "No"}`);
+      y += 4;
+
+      addLine("Line Items:", 13, 7);
+      lines.forEach((item, i) => {
+        const name = (PRODUCTS[item.type] || PRODUCTS.custom).name;
+        const color = item.color ? `Color: ${item.color}` : "Color: N/A";
+        const length = (PRODUCTS[item.type] && PRODUCTS[item.type].isLengthBased) ? `Length: ${safeNumber(item.length, 0).toFixed(1)} ft` : "Length: N/A";
+        const qty = `Qty: ${item.qty}`;
+
+        let extras = "";
+        if (item.type === "custom") {
+          extras = ` | Desc: ${String(item.customDesc || "").trim() || "—"} | Unit: ${formatMoney(item.customUnitPrice ?? 0)}`;
+        }
+
+        const subtotal = formatMoney(getLineSubtotal(item));
+        addLine(`${i + 1}. ${name} | ${color} | ${length} | ${qty}${extras} | Subtotal: ${subtotal}`, 11, 6);
+      });
+
+      y += 4;
+      addLine(`Total: ${formatMoney(lastTotal)}`, 13, 7);
+      y += 2;
+
+      addLine("Notes:", 13, 7);
+      addLine(`Special: ${document.getElementById("special-notes").value || "—"}`, 11, 6);
+      addLine(`Internal: ${document.getElementById("internal-notes").value || "—"}`, 11, 6);
+
+      // Attachments list (names only)
+      const files = [...document.getElementById("attachments").files];
+      if (files.length > 0) {
+        y += 4;
+        addLine("Selected Attachments (names only):", 13, 7);
+        files.forEach(f => addLine(`- ${f.name}`, 11, 6));
+      }
+
+      doc.save("AmeriDex_Order.pdf");
+    }
+
+    // ============================================================================
+    // EMAIL SUBMISSION
+    // ============================================================================
+    function prepareEmailSubmission() {
+      if (!validateForm()) return;
+
+      const sameAsCust = document.getElementById("same-as-customer").checked;
+
+      let body = "";
+      body += `New AmeriDex Order\n\n`;
+
+      body += `Customer Details:\n`;
+      body += `Name: ${document.getElementById("cust-name").value}\n`;
+      body += `Company: ${document.getElementById("cust-company").value || "—"}\n`;
+      body += `Address: ${document.getElementById("cust-street").value}, ${document.getElementById("cust-city").value}, ${document.getElementById("cust-state").value} ${document.getElementById("cust-zip").value}\n`;
+      body += `Phone: ${document.getElementById("cust-phone").value || "—"}\n`;
+      body += `Email: ${document.getElementById("cust-email").value || "—"}\n\n`;
+
+      body += `Shipping:\n`;
+      body += `Same as customer: ${sameAsCust ? "Yes" : "No"}\n`;
+      if (!sameAsCust) {
         body += `Address: ${document.getElementById("ship-street").value}, ${document.getElementById("ship-city").value}, ${document.getElementById("ship-state").value} ${document.getElementById("ship-zip").value}\n`;
+      }
+      body += `Preferred Delivery: ${document.getElementById("pref-delivery").value || "—"}\n\n`;
+
+      body += `Configuration:\n`;
+      body += `Picture Framing: ${document.getElementById("picture-framing").checked ? "Yes" : "No"}\n`;
+      body += `Stairs: ${document.getElementById("stairs-needed").checked ? "Yes" : "No"}\n\n`;
+
+      body += `Line Items:\n`;
+      lines.forEach((item) => {
+        const name = (PRODUCTS[item.type] || PRODUCTS.custom).name;
+        const color = item.color ? item.color : "N/A";
+        const len = (PRODUCTS[item.type] && PRODUCTS[item.type].isLengthBased) ? `${safeNumber(item.length, 0).toFixed(1)} ft` : "N/A";
+
+        if (item.type === "custom") {
+          body += `${name} - Desc: ${String(item.customDesc || "").trim() || "—"} - Qty: ${item.qty} - Unit: ${formatMoney(item.customUnitPrice ?? 0)} - Subtotal: ${formatMoney(getLineSubtotal(item))}\n`;
+        } else {
+          body += `${name} - Color: ${color} - Length: ${len} - Qty: ${item.qty} - Subtotal: ${formatMoney(getLineSubtotal(item))}\n`;
+        }
+      });
+
+      body += `\nTotal: ${formatMoney(lastTotal)}\n\n`;
+      body += `Special Notes: ${document.getElementById("special-notes").value || "—"}\n\n`;
+      body += `Internal Notes: ${document.getElementById("internal-notes").value || "—"}\n\n`;
+
+      const files = [...document.getElementById("attachments").files];
+      if (files.length > 0) {
+        body += `Attachments selected (must be attached manually in email client):\n`;
+        files.forEach(f => body += `- ${f.name}\n`);
+        body += `\n`;
+      }
+
+      const subject = `New AmeriDex Order - ${document.getElementById("cust-name").value || "Customer"}`;
+      const mailto = `mailto:sales@ameridex.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+      window.location.href = mailto;
+      document.getElementById("submit-feedback").textContent = "Email client opened! (Attach files manually if needed.)";
     }
-    body += `Preferred Delivery: ${document.getElementById("pref-delivery").value}\n\n`;
-    body += `Configuration:\nPicture Framing: ${document.getElementById("picture-framing").checked ? 'Yes' : 'No'}\nStairs: ${document.getElementById("stairs-needed").checked ? 'Yes' : 'No'}\n\n`;
-    body += `Line Items:\n`;
-    lines.forEach(item => {
-        body += `${PRODUCTS[item.type].name} - Color: ${item.color || 'N/A'} - Length: ${item.length || 'N/A'} ft - Qty: ${item.qty} - Subtotal: $${getLineSubtotal(item).toFixed(2)}\n`;
+
+    // ============================================================================
+    // RESET
+    // ============================================================================
+    function hardReset() {
+      // Clear text inputs + textareas
+      const textInputs = [
+        "cust-name","cust-company","cust-street","cust-city","cust-state","cust-zip","cust-phone","cust-email",
+        "ship-street","ship-city","ship-state","ship-zip",
+        "pref-delivery","deck-length","deck-width"
+      ];
+
+      textInputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+        if (el) el.classList.remove("invalid");
+      });
+
+      document.getElementById("special-notes").value = "";
+      document.getElementById("internal-notes").value = "";
+
+      // Reset checkboxes
+      document.getElementById("same-as-customer").checked = true;
+      document.getElementById("use-calculator").checked = false;
+      document.getElementById("picture-framing").checked = false;
+      document.getElementById("stairs-needed").checked = false;
+
+      // Reset panels
+      document.getElementById("shipping-fields").style.display = "none";
+      document.getElementById("calculator-panel").style.display = "none";
+      document.getElementById("calc-feedback").textContent = "";
+      document.getElementById("framing-note").style.display = "none";
+      document.getElementById("stairs-note").style.display = "none";
+
+      // Reset selects
+      document.getElementById("board-orientation").value = "perpendicular";
+
+      // Clear attachments
+      const fileInput = document.getElementById("attachments");
+      fileInput.value = "";
+      document.getElementById("file-size-warning").textContent = "";
+
+      // Clear errors
+      ["err-name","err-street","err-city","err-state","err-zip","err-email",
+       "err-ship-street","err-ship-city","err-ship-state","err-ship-zip",
+       "err-lines"
+      ].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = "";
+      });
+
+      // Reset deck values
+      deck = { length: 0, width: 0, orientation: "perpendicular" };
+
+      // Reset lines (rep-friendly: start with one default line like startup)
+      lines = [];
+      addLine("system");
+
+      document.getElementById("submit-feedback").textContent = "";
+      closeModal();
+    }
+
+    // ============================================================================
+    // STARTUP
+    // ============================================================================
+    document.addEventListener("DOMContentLoaded", () => {
+      initAddressAutocomplete();
+
+      // Start with one line item
+      addLine("system");
+
+      // Ensure default note states
+      document.getElementById("framing-note").style.display = "none";
+      document.getElementById("stairs-note").style.display = "none";
+
+      updateTotalsAndHints();
     });
-    body += `\nTotal: $${document.getElementById("grand-total-display").textContent.split(': $')[1]}\n\n`;
-    body += `Special Notes: ${document.getElementById("special-notes").value}\n\nInternal Notes: ${document.getElementById("internal-notes").value}`;
-    window.location.href = `mailto:sales@ameridex.com?subject=New AmeriDex Order&body=${encodeURIComponent(body)}`;
-    document.getElementById("submit-feedback").textContent = "Email client opened!";
-}
-// ============================================================================
-// STARTUP
-// ============================================================================
-document.addEventListener("DOMContentLoaded", () => {
-    initAddressAutocomplete();
-    addLine();
-    renderLines();
-    updateTotalsAndHints();
-});
-</script>
+  </script>
 </body>
 </html>
