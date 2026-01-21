@@ -1,1 +1,336 @@
-
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/docs/index.html b/docs/index.html
+index 8b137891791fe96927ad78e64b0aad7bded08bdc..0529e82b749f32534561c729ce9d50d0a1706998 100644
+--- a/docs/index.html
++++ b/docs/index.html
+@@ -1 +1,327 @@
++<!DOCTYPE html>
++<html lang="en">
++<head>
++  <meta charset="UTF-8" />
++  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++  <title>AmeriDex Order Form</title>
++  <link rel="stylesheet" href="styles.css" />
++</head>
+ 
++<body>
++  <div class="container">
++    <header>
++      <h1>AmeriDex Order Form</h1>
++      <p>Sales Rep Tool — Interactive Order Form</p>
++    </header>
++
++    <form class="section" id="order-form" action="#" method="post">
++      <!-- CUSTOMER -->
++      <div class="section" style="margin-top:0;">
++        <h2>Customer Information</h2>
++
++        <div class="grid two">
++          <div>
++            <label for="cust-name">Name *</label>
++            <input id="cust-name" name="cust_name" type="text" placeholder="Customer name" required />
++          </div>
++          <div>
++            <label for="cust-company">Company</label>
++            <input id="cust-company" name="cust_company" type="text" placeholder="Company name" />
++          </div>
++        </div>
++
++        <label>Address *</label>
++        <div class="grid four">
++          <div>
++            <input id="cust-street" name="cust_street" type="text" placeholder="Street address" required />
++          </div>
++          <div>
++            <input id="cust-city" name="cust_city" type="text" placeholder="City" required />
++          </div>
++          <div>
++            <input id="cust-state" name="cust_state" type="text" placeholder="State (2-letter)" maxlength="2" required />
++          </div>
++          <div>
++            <input id="cust-zip" name="cust_zip" type="text" placeholder="ZIP" required />
++          </div>
++        </div>
++
++        <div class="grid two" style="margin-top:1rem;">
++          <div>
++            <label for="cust-phone">Phone</label>
++            <input id="cust-phone" name="cust_phone" type="tel" placeholder="(###) ###-####" />
++          </div>
++          <div>
++            <label for="cust-email">Email</label>
++            <input id="cust-email" name="cust_email" type="email" placeholder="name@company.com" />
++          </div>
++        </div>
++      </div>
++
++      <!-- SHIPPING -->
++      <div class="section">
++        <h2>Shipping Information</h2>
++
++        <div class="checkrow">
++          <input type="checkbox" id="same-as-customer" name="same_as_customer" checked />
++          <div class="checktext">Same as customer address</div>
++        </div>
++
++        <div class="help">
++          If not same as customer, fill in shipping fields below.
++        </div>
++
++        <label>Shipping Address</label>
++        <div class="grid four">
++          <div><input id="ship-street" name="ship_street" type="text" placeholder="Street address" /></div>
++          <div><input id="ship-city" name="ship_city" type="text" placeholder="City" /></div>
++          <div><input id="ship-state" name="ship_state" type="text" placeholder="State (2-letter)" maxlength="2" /></div>
++          <div><input id="ship-zip" name="ship_zip" type="text" placeholder="ZIP" /></div>
++        </div>
++
++        <div style="margin-top:1rem;">
++          <label for="pref-delivery">Preferred Delivery Date</label>
++          <input id="pref-delivery" name="pref_delivery" type="date" />
++        </div>
++      </div>
++
++      <!-- CONFIG -->
++      <div class="section">
++        <h2>Order Configuration</h2>
++
++        <div class="checkrow">
++          <input type="checkbox" id="use-calculator" name="use_calculator" />
++          <div class="checktext">Use Deck Calculator (manual fields below)</div>
++        </div>
++
++        <div class="grid two">
++          <div>
++            <label for="deck-length">Deck Length (ft)</label>
++            <input id="deck-length" name="deck_length" type="number" step="0.1" min="0" placeholder="e.g. 24" />
++          </div>
++          <div>
++            <label for="deck-width">Deck Width (ft)</label>
++            <input id="deck-width" name="deck_width" type="number" step="0.1" min="0" placeholder="e.g. 16" />
++          </div>
++        </div>
++
++        <div style="margin-top:1rem;">
++          <label for="orientation">Board Orientation</label>
++          <select id="orientation" name="orientation">
++            <option value="perpendicular">Perpendicular to length (recommended)</option>
++            <option value="parallel">Parallel to length</option>
++          </select>
++        </div>
++
++        <div class="checkrow" style="margin-top:1rem;">
++          <input type="checkbox" id="picture-framing" name="picture_framing" />
++          <div class="checktext">Picture Framing</div>
++        </div>
++        <div class="note">→ Add Solid Edge Boards manually for framing</div>
++
++        <div class="checkrow" style="margin-top:1rem;">
++          <input type="checkbox" id="stairs-needed" name="stairs_needed" />
++          <div class="checktext">Stairs</div>
++        </div>
++        <div class="note">→ Add Solid Edge Boards manually for stairs</div>
++      </div>
++
++      <!-- LINE ITEMS -->
++      <div class="section">
++        <h2>Line Items</h2>
++        <div class="help">
++          Use Qty and Unit Price to calculate subtotals and totals automatically.
++        </div>
++
++        <div class="table-wrap">
++          <table>
++            <thead>
++              <tr>
++                <th style="min-width:260px;">Product</th>
++                <th style="min-width:160px;">Color</th>
++                <th style="min-width:110px;">Length (ft)</th>
++                <th style="min-width:90px;">Qty</th>
++                <th style="min-width:130px;">Dexerdry (ft)</th>
++                <th style="min-width:130px;">Unit Price</th>
++                <th style="min-width:140px;">Subtotal</th>
++              </tr>
++            </thead>
++            <tbody>
++              <!-- Row 1 -->
++              <tr class="line-item">
++                <td>
++                  <select name="item1_product">
++                    <option>AmeriDex System Boards (Grooved + Dexerdry)</option>
++                    <option>Grooved Deck Boards (no Dexerdry)</option>
++                    <option>Solid Edge Deck Boards</option>
++                    <option>Dexerdry Seals (standalone)</option>
++                    <option>Epoxy-Coated Screws</option>
++                    <option>Color-Matching Plugs</option>
++                    <option>Custom / Manual Item</option>
++                  </select>
++                </td>
++                <td>
++                  <select name="item1_color">
++                    <option>Driftwood</option>
++                    <option>Khaki</option>
++                    <option>Slate</option>
++                    <option>Beachwood</option>
++                    <option>Chestnut</option>
++                    <option>Redwood</option>
++                    <option>Hazelnut</option>
++                    <option>N/A</option>
++                  </select>
++                </td>
++                <td><input name="item1_length" type="number" step="0.1" min="0" placeholder="16" /></td>
++                <td><input name="item1_qty" type="number" step="1" min="0" placeholder="1" /></td>
++                <td><input name="item1_dex" type="number" step="0.1" min="0" placeholder="(manual)" /></td>
++                <td><input name="item1_unit" type="number" step="0.01" placeholder="0.00" /></td>
++                <td><input name="item1_subtotal" type="number" step="0.01" placeholder="0.00" /></td>
++              </tr>
++
++              <!-- Row 2 -->
++              <tr class="line-item">
++                <td>
++                  <select name="item2_product">
++                    <option>AmeriDex System Boards (Grooved + Dexerdry)</option>
++                    <option selected>Grooved Deck Boards (no Dexerdry)</option>
++                    <option>Solid Edge Deck Boards</option>
++                    <option>Dexerdry Seals (standalone)</option>
++                    <option>Epoxy-Coated Screws</option>
++                    <option>Color-Matching Plugs</option>
++                    <option>Custom / Manual Item</option>
++                  </select>
++                </td>
++                <td>
++                  <select name="item2_color">
++                    <option>Driftwood</option>
++                    <option>Khaki</option>
++                    <option>Slate</option>
++                    <option>Beachwood</option>
++                    <option>Chestnut</option>
++                    <option>Redwood</option>
++                    <option>Hazelnut</option>
++                    <option>N/A</option>
++                  </select>
++                </td>
++                <td><input name="item2_length" type="number" step="0.1" min="0" placeholder="16" /></td>
++                <td><input name="item2_qty" type="number" step="1" min="0" placeholder="0" /></td>
++                <td><input name="item2_dex" type="number" step="0.1" min="0" placeholder="(manual)" /></td>
++                <td><input name="item2_unit" type="number" step="0.01" placeholder="0.00" /></td>
++                <td><input name="item2_subtotal" type="number" step="0.01" placeholder="0.00" /></td>
++              </tr>
++
++              <!-- Row 3 -->
++              <tr class="line-item">
++                <td>
++                  <select name="item3_product">
++                    <option>AmeriDex System Boards (Grooved + Dexerdry)</option>
++                    <option>Grooved Deck Boards (no Dexerdry)</option>
++                    <option selected>Solid Edge Deck Boards</option>
++                    <option>Dexerdry Seals (standalone)</option>
++                    <option>Epoxy-Coated Screws</option>
++                    <option>Color-Matching Plugs</option>
++                    <option>Custom / Manual Item</option>
++                  </select>
++                </td>
++                <td>
++                  <select name="item3_color">
++                    <option>Driftwood</option>
++                    <option>Khaki</option>
++                    <option>Slate</option>
++                    <option>Beachwood</option>
++                    <option>Chestnut</option>
++                    <option>Redwood</option>
++                    <option>Hazelnut</option>
++                    <option>N/A</option>
++                  </select>
++                </td>
++                <td><input name="item3_length" type="number" step="0.1" min="0" placeholder="16" /></td>
++                <td><input name="item3_qty" type="number" step="1" min="0" placeholder="0" /></td>
++                <td><input name="item3_dex" type="number" step="0.1" min="0" placeholder="(manual)" /></td>
++                <td><input name="item3_unit" type="number" step="0.01" placeholder="0.00" /></td>
++                <td><input name="item3_subtotal" type="number" step="0.01" placeholder="0.00" /></td>
++              </tr>
++
++              <!-- Row 4 (Custom) -->
++              <tr class="line-item">
++                <td>
++                  <select name="item4_product">
++                    <option>AmeriDex System Boards (Grooved + Dexerdry)</option>
++                    <option>Grooved Deck Boards (no Dexerdry)</option>
++                    <option>Solid Edge Deck Boards</option>
++                    <option>Dexerdry Seals (standalone)</option>
++                    <option>Epoxy-Coated Screws</option>
++                    <option>Color-Matching Plugs</option>
++                    <option selected>Custom / Manual Item</option>
++                  </select>
++                  <div class="help">Custom description:</div>
++                  <input name="item4_desc" type="text" placeholder="e.g. Freight, Trim, Discount, Hardware..." />
++                </td>
++                <td>
++                  <select name="item4_color">
++                    <option>N/A</option>
++                    <option>Driftwood</option>
++                    <option>Khaki</option>
++                    <option>Slate</option>
++                    <option>Beachwood</option>
++                    <option>Chestnut</option>
++                    <option>Redwood</option>
++                    <option>Hazelnut</option>
++                  </select>
++                </td>
++                <td><input name="item4_length" type="number" step="0.1" min="0" placeholder="N/A" /></td>
++                <td><input name="item4_qty" type="number" step="1" min="0" placeholder="1" /></td>
++                <td><input name="item4_dex" type="number" step="0.1" min="0" placeholder="N/A" /></td>
++                <td><input name="item4_unit" type="number" step="0.01" placeholder="0.00 (can be -)" /></td>
++                <td><input name="item4_subtotal" type="number" step="0.01" placeholder="0.00" /></td>
++              </tr>
++            </tbody>
++          </table>
++        </div>
++
++        <div class="total">
++          <div class="total-box">
++            <label for="grand-total">Estimated Total</label>
++            <input id="grand-total" name="grand_total" type="number" step="0.01" placeholder="0.00" />
++            <div class="help">Totals update as you change the line items.</div>
++          </div>
++        </div>
++      </div>
++
++      <!-- NOTES -->
++      <div class="section">
++        <h2>Additional Information</h2>
++
++        <label for="special-notes">Special Instructions / Production Notes</label>
++        <textarea id="special-notes" name="special_notes" rows="3" placeholder="e.g. special layout requirements, delivery instructions..."></textarea>
++
++        <label for="internal-notes" style="margin-top:1rem;">Internal Sales Notes (not visible to customer)</label>
++        <textarea id="internal-notes" name="internal_notes" rows="2" placeholder="Internal notes..."></textarea>
++      </div>
++
++      <!-- ATTACHMENTS -->
++      <div class="section">
++        <h2>Attachments</h2>
++        <input type="file" id="attachments" name="attachments" multiple accept="image/*,.pdf" />
++        <div class="help">
++          Files attach locally in the browser and are included when you print/save the order.
++        </div>
++      </div>
++
++      <!-- ACTIONS -->
++      <div class="section" style="text-align:center;">
++        <div class="actions">
++          <button type="reset" class="secondary">Reset Form</button>
++          <button type="submit">Submit (requires backend)</button>
++        </div>
++        <div class="print-hint">
++          Tip: To print/save as PDF, use your browser print menu (Ctrl/Cmd + P).
++        </div>
++      </div>
++    </form>
++  </div>
++
++  <script src="app.js"></script>
++</body>
++</html>
+ 
+EOF
+)
